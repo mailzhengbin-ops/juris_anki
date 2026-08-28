@@ -19,13 +19,21 @@ test('a valid template parses into the deck structure', function () {
     $parsed = MarkdownDeckParser::parse($content);
 
     expect($parsed['name'])->toBe('刑法')
-        ->and($parsed['sections'])->toHaveCount(2)
+        ->and($parsed['sections'])->toHaveCount(7)
         ->and($parsed['sections'][0]['name'])->toBe('绪论')
-        ->and($parsed['sections'][0]['cards'])->toHaveCount(3)
         ->and($parsed['sections'][0]['cards'][0]['question'])->toBe('刑法的任务')
         ->and($parsed['sections'][0]['cards'][0]['answer'])->toContain('保护国家安全')
         ->and($parsed['sections'][1]['name'])->toBe('犯罪构成')
-        ->and($parsed['sections'][1]['cards'])->toHaveCount(3);
+        ->and($parsed['sections'][6]['name'])->toBe('刑罚');
+
+    // 每个章节至少一张卡，且答案全部非空（模板整体可被导入管线接受）
+    foreach ($parsed['sections'] as $section) {
+        expect($section['cards'])->not->toBeEmpty();
+
+        foreach ($section['cards'] as $card) {
+            expect($card['answer'])->not->toBeEmpty();
+        }
+    }
 });
 
 test('stray text outside headings and fences is ignored', function () {
