@@ -4,6 +4,7 @@ use App\Http\Controllers\DeckController;
 use App\Http\Controllers\ReciteController;
 use App\Http\Controllers\ScopeController;
 use App\Http\Controllers\SelectController;
+use App\Http\Controllers\StatsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('decks/import', [DeckController::class, 'import'])->name('decks.import');
     Route::delete('decks/{deck}', [DeckController::class, 'destroy'])->name('decks.destroy');
 
-    Route::inertia('stats', 'stats/index')->name('stats');
+    Route::get('stats', [StatsController::class, 'show'])->name('stats');
 });
 
 require __DIR__.'/settings.php';

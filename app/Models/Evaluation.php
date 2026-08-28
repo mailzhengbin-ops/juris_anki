@@ -13,7 +13,7 @@ class Evaluation extends Model
      */
     public const UPDATED_AT = null;
 
-    protected $fillable = ['user_id', 'card_id', 'task_id', 'rating'];
+    protected $fillable = ['user_id', 'card_id', 'task_id', 'rating', 'created_at'];
 
     protected $casts = [
         'rating' => Rating::class,
