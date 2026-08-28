@@ -12,3 +12,8 @@
 - [ ] 点击卡组显示详情（名称、卡片总数、子卡组列表及各自卡片数）与"设为自选卡"按钮
 - [ ] 确认后该卡组成为该用户的自选卡，用户维度唯一
 - [ ] feature 测试覆盖列表、详情、设为自选卡、游客重定向
+
+## Comments
+
+- 2026-08-28 schema 骨架（迁移/模型/枚举）在脚手架提交 b8df7a3 中（早期 git add -A 卷入），已含 decks/sections/cards/tasks/evaluations/scope_exclusions 迁移与全部模型（含 HasFactory、关系、枚举 cast）。
+- 2026-08-28 实施完成：Deck/Section/Card 工厂（system/ownedBy state）、UserFactory admin state、种子（env 凭据管理员 + 刑法系统卡组 2 子卡组 5 卡，幂等）；SelectController@index 仓库数据（名称/卡片总数/子卡组及各自卡片数）+ setSelectedDeck（系统卡组或本人卡组才可设，唯一覆盖）；选卡页两栏布局（左列表带系统/用户 tab，右详情+设为自选卡，已选显示"当前自选卡"）。SelectTest 8 例通过（含权限 403/404/唯一性）。全量测试 38 通过。

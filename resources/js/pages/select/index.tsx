@@ -1,7 +1,8 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Check } from 'lucide-react';
-import { useState } from 'react';
+import { Check, Plus, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import DeckController from '@/actions/App/Http/Controllers/DeckController';
 import SelectController from '@/actions/App/Http/Controllers/SelectController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,10 +30,12 @@ type PageProps = {
 type Tab = 'system' | 'user';
 
 export default function Select() {
-    const { warehouse, selectedDeck } = usePage<PageProps>().props;
+    const { warehouse, selectedDeck, errors } = usePage<PageProps & { errors: Record<string, string> }>().props;
     const [tab, setTab] = useState<Tab>('system');
     const [detail, setDetail] = useState<DeckSummary | null>(null);
     const [processing, setProcessing] = useState(false);
+    const [importing, setImporting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const decks = tab === 'system' ? warehouse.systemDecks : warehouse.userDecks;
     const current = detail ?? decks[0] ?? null;
@@ -54,6 +57,38 @@ export default function Select() {
                 onFinish: () => setProcessing(false),
             },
         );
+    }
+
+    function importDocument(file: File) {
+        const formData = new FormData();
+        formData.append('document', file);
+
+        setImporting(true);
+        router.post(DeckController.import.url(), formData, {
+            preserveScroll: true,
+            onError: (importErrors) => {
+                toast.error(importErrors.document ?? '导入失败，请检查文档格式');
+            },
+            onFinish: () => {
+                setImporting(false);
+
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
+        });
+    }
+
+    function deleteDeck(deck: DeckSummary) {
+        if (!window.confirm(`确定删除卡组「${deck.name}」吗？删除后不可恢复。`)) {
+            return;
+        }
+
+        setProcessing(true);
+        router.delete(DeckController.destroy.url({ deck: deck.id }), {
+            preserveScroll: true,
+            onFinish: () => setProcessing(false),
+        });
     }
 
     return (
@@ -85,6 +120,38 @@ export default function Select() {
                             </button>
                         ))}
                     </div>
+
+                    {tab === 'user' && (
+                        <>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={importing}
+                            >
+                                <Plus />
+                                导入 markdown 文档
+                            </Button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".md,.markdown,text/markdown,text/plain"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+
+                                    if (file) {
+                                        importDocument(file);
+                                    }
+                                }}
+                            />
+                            {errors.document && (
+                                <p className="text-sm text-destructive">
+                                    {errors.document}
+                                </p>
+                            )}
+                        </>
+                    )}
 
                     <div className="space-y-2">
                         {decks.map((deck) => (
@@ -155,6 +222,18 @@ export default function Select() {
                                         disabled={processing}
                                     >
                                         设为自选卡
+                                    </Button>
+                                )}
+
+                                {tab === 'user' && (
+                                    <Button
+                                        variant="destructive"
+                                        className="w-full"
+                                        onClick={() => deleteDeck(current)}
+                                        disabled={processing}
+                                    >
+                                        <Trash2 />
+                                        删除卡组
                                     </Button>
                                 )}
                             </CardContent>

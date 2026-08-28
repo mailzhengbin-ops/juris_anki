@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DeckController;
 use App\Http\Controllers\SelectController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('select', [SelectController::class, 'index'])->name('select');
     Route::post('select/deck', [SelectController::class, 'setSelectedDeck'])->name('select.deck');
+
+    Route::post('decks/import', [DeckController::class, 'import'])->name('decks.import');
+    Route::delete('decks/{deck}', [DeckController::class, 'destroy'])->name('decks.destroy');
 
     Route::inertia('stats', 'stats/index')->name('stats');
 });

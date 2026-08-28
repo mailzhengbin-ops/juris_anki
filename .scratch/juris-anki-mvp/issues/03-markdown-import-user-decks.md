@@ -14,3 +14,7 @@
 - [ ] 用户卡组 tab 展示自己的卡组并可删除（删除后其卡片从范围/错题本消失，历史统计不变）
 - [ ] 解析器纯函数单测覆盖边界矩阵（唯一辅助测试缝）
 - [ ] 导入端点 feature 测试覆盖成功与失败路径
+
+## Comments
+
+- 2026-08-28 实施完成：MarkdownDeckParser（纯函数，抛 MarkdownParseException 携带行号；关键修复：preg_split 必须带 u 修饰符，否则 \R 在字节模式下会把 UTF-8 中文内 0x85 字节误判为 NEL 换行导致答案乱码）；DeckImportService（≤2MB、同名冲突校验、单事务原子导入、owner=null 即系统卡组供工单 10 复用）；DeckController@import（文件上传 max:2048）+ @destroy（仅本人卡组，级联删除、评价保留、自选卡置空）；选卡页用户 tab：导入按钮+行号错误展示、删除按钮带确认。解析器单测 13 例 + 导入 feature 测试 13 例；全量测试 64 通过。
