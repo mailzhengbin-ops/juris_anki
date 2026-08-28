@@ -123,7 +123,7 @@ function ReciteCard({
 }) {
     return (
         <div
-            className="relative min-h-[16rem]"
+            className="grid min-h-[16rem]"
             onClick={onFlip}
             role="button"
             tabIndex={0}
@@ -132,7 +132,7 @@ function ReciteCard({
             {/* 正面：问题 */}
             <div
                 className={cn(
-                    'absolute inset-0 flex flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
+                    'col-start-1 row-start-1 flex flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
                     flipped && 'pointer-events-none opacity-0',
                 )}
             >
@@ -169,7 +169,7 @@ function ReciteCard({
             {/* 反面：答案 */}
             <div
                 className={cn(
-                    'absolute inset-0 flex flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
+                    'col-start-1 row-start-1 flex flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
                     !flipped && 'pointer-events-none opacity-0',
                 )}
                 onClick={(event) => event.stopPropagation()}
