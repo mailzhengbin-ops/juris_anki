@@ -32,7 +32,10 @@ test('guests can visit the welcome page', function () {
     $response->assertOk();
 });
 
-test('guests are redirected to the login page when visiting the select and stats pages', function () {
+test('guests are redirected to the login page when visiting the select page', function () {
     $this->get(route('select'))->assertRedirect(route('login'));
+});
+
+test('guests are redirected to the login page when visiting the stats page', function () {
     $this->get(route('stats'))->assertRedirect(route('login'));
 });

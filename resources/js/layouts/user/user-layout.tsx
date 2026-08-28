@@ -1,52 +1,21 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import type { PropsWithChildren } from 'react';
 import {
-    BarChart3,
-    BookOpenText,
-    ListChecks,
-    UserRound
+    isUserNavItemActive,
+    primaryNavItems,
+    profileNavItem
     
-} from 'lucide-react';
-import type {LucideIcon} from 'lucide-react';
+} from '@/lib/user-nav';
+import type {UserNavItem} from '@/lib/user-nav';
 import { cn } from '@/lib/utils';
-import { recite, select, stats } from '@/routes';
-import { edit as editProfile } from '@/routes/profile';
-import type { NavItem } from '@/types';
 
-type UserNavItem = NavItem & {
-    icon: LucideIcon;
-    /** 底部 tab 激活匹配的前缀（默认等于 href） */
-    matchPrefix?: string;
-};
-
-function useNavItems(): UserNavItem[] {
-    return [
-        { title: '背诵', href: recite(), icon: BookOpenText },
-        { title: '选卡', href: select(), icon: ListChecks },
-        { title: '统计', href: stats(), icon: BarChart3 },
-        { title: '我的', href: editProfile(), icon: UserRound, matchPrefix: '/settings' },
-    ];
-}
-
-function isActive(url: string, item: UserNavItem): boolean {
-    const prefix = item.matchPrefix ?? item.href;
-
-    return url === prefix || url.startsWith(`${prefix}/`);
-}
-
-export default function UserLayout({
-    title,
-    children,
-}: {
-    title: string;
-    children: React.ReactNode;
-}) {
-    const items = useNavItems();
+/** 用户端布局：桌面顶部导航 + 移动端底部 tab */
+export default function UserLayout({ children }: PropsWithChildren) {
+    const items: UserNavItem[] = [...primaryNavItems(), profileNavItem()];
     const { url } = usePage();
 
     return (
         <div className="min-h-svh bg-background">
-            <Head title={title} />
-
             {/* 桌面端顶部导航 */}
             <header className="sticky top-0 z-40 hidden border-b bg-background md:block">
                 <div className="mx-auto flex h-14 w-full max-w-4xl items-center gap-6 px-6">
@@ -58,7 +27,7 @@ export default function UserLayout({
                                 href={item.href}
                                 className={cn(
                                     'rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
-                                    isActive(url, item) &&
+                                    isUserNavItemActive(url, item) &&
                                         'bg-accent font-medium text-foreground',
                                 )}
                             >
@@ -84,7 +53,8 @@ export default function UserLayout({
                             href={item.href}
                             className={cn(
                                 'flex flex-col items-center gap-1 py-2 text-xs text-muted-foreground',
-                                isActive(url, item) && 'text-foreground',
+                                isUserNavItemActive(url, item) &&
+                                    'text-foreground',
                             )}
                         >
                             <Icon className="size-5" />

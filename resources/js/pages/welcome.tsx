@@ -18,7 +18,7 @@ export default function Welcome() {
                         Juris Anki
                     </h1>
                     <p className="max-w-sm text-muted-foreground">
-                        法律硕士考试卡片背诵系统--自选范围、单遍过卡、错题攻坚
+                        法律硕士考试卡片背诵系统——自选范围、单遍过卡、错题攻坚
                     </p>
                 </div>
             </div>

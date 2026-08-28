@@ -12,11 +12,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 
-type Props = {
-    status?: string;
-};
-
-export default function Login({ status }: Props) {
+export default function Login() {
     return (
         <>
             <Head title="登录" />
@@ -102,11 +98,6 @@ export default function Login({ status }: Props) {
                 )}
             </Form>
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </>
     );
 }
