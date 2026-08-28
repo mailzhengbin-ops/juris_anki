@@ -63,6 +63,9 @@ class StatsService
         return ['days' => $skeleton, 'totals' => $totals];
     }
 
+    /**
+     * @param  Collection<int, Evaluation>  $buckets
+     */
     private function countRating(Collection $buckets, Rating $rating): int
     {
         return $buckets->where('rating', $rating)->count();

@@ -29,6 +29,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
+ * @property Carbon|null $last_login_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -51,31 +52,37 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'last_login_at' => 'datetime',
             'is_admin' => 'boolean',
             'active_source' => SourceType::class,
         ];
     }
 
+    /** @return BelongsTo<Deck, $this> */
     public function selectedDeck(): BelongsTo
     {
         return $this->belongsTo(Deck::class, 'selected_deck_id');
     }
 
+    /** @return HasMany<Deck, $this> */
     public function decks(): HasMany
     {
         return $this->hasMany(Deck::class, 'user_id');
     }
 
+    /** @return HasMany<Evaluation, $this> */
     public function evaluations(): HasMany
     {
         return $this->hasMany(Evaluation::class);
     }
 
+    /** @return HasMany<Task, $this> */
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }
 
+    /** @return HasMany<ScopeExclusion, $this> */
     public function scopeExclusions(): HasMany
     {
         return $this->hasMany(ScopeExclusion::class);

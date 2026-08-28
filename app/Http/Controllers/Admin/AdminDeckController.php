@@ -66,7 +66,7 @@ class AdminDeckController extends Controller
                 'id' => $deck->id,
                 'name' => $deck->name,
                 'sections' => $deck->sections()
-                    ->with(['cards' => fn ($q) => $q->orderBy('position')])
+                    ->with('cards')
                     ->get()
                     ->map(fn (Section $section) => [
                         'id' => $section->id,

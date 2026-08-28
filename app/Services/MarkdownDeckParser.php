@@ -26,14 +26,18 @@ final class MarkdownDeckParser
     public static function parse(string $content): array
     {
         $deckName = null;
+        /** @var list<array{name: string, cards: list<array{question: string, answer: string|null}>}> */
         $sections = [];
-        $sectionIndex = null;
-        $cardIndex = null;
+        /** @var array{name: string, cards: list<array{question: string, answer: string|null}>}|null $currentSection */
+        $currentSection = null;
+        /** @var array{question: string, answer: string|null}|null $currentCard */
+        $currentCard = null;
         $inAnswer = false;
         $answerLines = [];
         $cardCount = 0;
 
         // 必须带 u 修饰符：\R 在字节模式下会把 UTF-8 中文里出现的 0x85 字节误判为 NEL 换行
+        /** @var list<string>|false */
         $lines = preg_split('/\R/u', $content);
 
         if ($lines === false) {
@@ -48,15 +52,13 @@ final class MarkdownDeckParser
             }
 
             if (preg_match('/^###\s/', $line)) {
-                if ($inAnswer) {
-                    self::fail($lineNumber, '答案围栏未闭合，缺少结尾 ```');
-                }
+                self::closeAnswer($inAnswer, $lineNumber);
 
-                if ($sectionIndex === null) {
+                if ($currentSection === null) {
                     self::fail($lineNumber, '### 只能出现在 ## 子卡组标题之下');
                 }
 
-                if ($cardIndex !== null && $sections[$sectionIndex]['cards'][$cardIndex]['answer'] === null) {
+                if ($currentCard !== null && $currentCard['answer'] === null) {
                     self::fail($lineNumber, '上一张卡片缺少答案围栏');
                 }
 
@@ -64,38 +66,34 @@ final class MarkdownDeckParser
                     self::fail($lineNumber, sprintf('卡片数量超过上限（%d 张）', self::MAX_CARDS));
                 }
 
-                $sections[$sectionIndex]['cards'][] = [
+                $currentSection['cards'][] = [
                     'question' => trim(substr($line, 3)),
                     'answer' => null,
                 ];
-                $cardIndex = count($sections[$sectionIndex]['cards']) - 1;
+                $currentCard = $currentSection['cards'][count($currentSection['cards']) - 1];
 
                 continue;
             }
 
             if (preg_match('/^##\s/', $line)) {
-                if ($inAnswer) {
-                    self::fail($lineNumber, '答案围栏未闭合，缺少结尾 ```');
-                }
+                self::closeAnswer($inAnswer, $lineNumber);
 
                 if ($deckName === null) {
                     self::fail($lineNumber, '## 只能出现在 # 卡组标题之下');
                 }
 
-                $sections[] = [
-                    'name' => trim(substr($line, 2)),
-                    'cards' => [],
-                ];
-                $sectionIndex = count($sections) - 1;
-                $cardIndex = null;
+                if ($currentSection !== null) {
+                    $sections[] = $currentSection;
+                }
+
+                $currentSection = ['name' => trim(substr($line, 2)), 'cards' => []];
+                $currentCard = null;
 
                 continue;
             }
 
             if (preg_match('/^#\s/', $line)) {
-                if ($inAnswer) {
-                    self::fail($lineNumber, '答案围栏未闭合，缺少结尾 ```');
-                }
+                self::closeAnswer($inAnswer, $lineNumber);
 
                 if ($deckName !== null) {
                     self::fail($lineNumber, '文档只能有一个 # 卡组标题');
@@ -114,14 +112,18 @@ final class MarkdownDeckParser
                         self::fail($lineNumber, '答案不允许为空');
                     }
 
-                    $sections[$sectionIndex]['cards'][$cardIndex]['answer'] = $answer;
+                    if ($currentCard !== null && $currentSection !== null) {
+                        $currentCard['answer'] = $answer;
+                        $currentSection['cards'][count($currentSection['cards']) - 1] = $currentCard;
+                    }
+
                     $inAnswer = false;
                     $answerLines = [];
 
                     continue;
                 }
 
-                if ($cardIndex === null || $sections[$sectionIndex]['cards'][$cardIndex]['answer'] !== null) {
+                if ($currentCard === null || $currentCard['answer'] !== null) {
                     self::fail($lineNumber, '``` 必须紧跟 ### 卡片问题之后');
                 }
 
@@ -142,12 +144,16 @@ final class MarkdownDeckParser
             self::fail(count($lines), '答案围栏未闭合，缺少结尾 ```');
         }
 
-        if ($cardIndex !== null && $sections[$sectionIndex]['cards'][$cardIndex]['answer'] === null) {
+        if ($currentCard !== null && $currentCard['answer'] === null) {
             self::fail(count($lines), '最后一张卡片缺少答案围栏');
         }
 
         if ($deckName === null) {
             self::fail(1, '缺少 # 卡组标题');
+        }
+
+        if ($currentSection !== null) {
+            $sections[] = $currentSection;
         }
 
         if ($sections === []) {
@@ -158,6 +164,16 @@ final class MarkdownDeckParser
             'name' => $deckName,
             'sections' => $sections,
         ];
+    }
+
+    /**
+     * 未闭合围栏检查（进入新结构或文档结束时调用）。
+     */
+    private static function closeAnswer(bool $inAnswer, int $lineNumber): void
+    {
+        if ($inAnswer) {
+            self::fail($lineNumber, '答案围栏未闭合，缺少结尾 ```');
+        }
     }
 
     /**

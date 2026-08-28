@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\Section;
+use App\Models\User;
 use App\Services\RecitationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -80,6 +81,7 @@ class ScopeController extends Controller
                 ->cards()
                 ->pluck('id'),
             'deck', 'source' => Card::whereIn('section_id', $sectionIds)->pluck('id'),
+            default => abort(422, '无效的切换类型'),
         };
     }
 
@@ -88,7 +90,7 @@ class ScopeController extends Controller
      *
      * @return Collection<int, int>
      */
-    private function mistakeCardIdsForToggle($user, string $type, mixed $id): Collection
+    private function mistakeCardIdsForToggle(User $user, string $type, mixed $id): Collection
     {
         $membership = $this->recitation->mistakeMembership($user);
         $inBook = $membership['forgotten']->merge($membership['fuzzy'])->unique();
@@ -106,6 +108,7 @@ class ScopeController extends Controller
                 default => abort(422, '未知的错题本子卡组'),
             },
             'deck', 'source' => $inBook,
+            default => abort(422, '无效的切换类型'),
         };
     }
 }

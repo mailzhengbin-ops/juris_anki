@@ -14,11 +14,13 @@ class ScopeExclusion extends Model
 
     protected $fillable = ['user_id', 'card_id'];
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Card, $this> */
     public function card(): BelongsTo
     {
         return $this->belongsTo(Card::class);

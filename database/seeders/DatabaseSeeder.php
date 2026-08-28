@@ -42,8 +42,8 @@ class DatabaseSeeder extends Seeder
 
     private function seedAdmin(): void
     {
-        $email = env('ADMIN_EMAIL', 'admin@juris-anki.local');
-        $password = env('ADMIN_PASSWORD', 'password');
+        $email = config('app.admin.email');
+        $password = config('app.admin.password');
 
         User::factory()->admin()->create([
             'name' => '管理员',

@@ -18,16 +18,19 @@ class Task extends Model
         'completed_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Deck, $this> */
     public function sourceDeck(): BelongsTo
     {
         return $this->belongsTo(Deck::class, 'source_deck_id');
     }
 
+    /** @return HasMany<Evaluation, $this> */
     public function evaluations(): HasMany
     {
         return $this->hasMany(Evaluation::class);
@@ -35,6 +38,9 @@ class Task extends Model
 
     /**
      * 进行中的任务（未完成）。
+     *
+     * @param  Builder<Task>  $query
+     * @return Builder<Task>
      */
     public function scopeOpen(Builder $query): Builder
     {

@@ -12,3 +12,7 @@
 - [ ] 前端构建成功
 - [ ] 种子可重复执行（migrate:fresh --seed 幂等）
 - [ ] 手工冒烟：注册->导入->背一轮->错题本->统计->管理端 全链路可用
+
+## Comments
+
+- 2026-08-28 收尾完成：Wayfinder 与路由一致；Pint / PHPStan（0 错误，含模型泛型注解、解析器重构为类型化局部变量、变异式构型）、ESLint、tsc 全绿；全量 Pest 129 通过；npm run build 成功；种子 migrate:fresh --seed 幂等。手工冒烟建议由你执行：`composer run dev` 后走 注册->选卡->导入->背诵->错题本->统计->管理端。遗留小项：2FA/passkey 管理组件内部文案仍为英文（非 MVP 验收项）。

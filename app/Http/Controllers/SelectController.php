@@ -6,8 +6,10 @@ use App\Enums\SourceType;
 use App\Models\Card;
 use App\Models\Deck;
 use App\Models\ScopeExclusion;
+use App\Models\Section;
 use App\Models\User;
 use App\Services\RecitationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -34,7 +36,7 @@ class SelectController extends Controller
             'selectedDeck' => $user->selected_deck_id !== null
                 ? $this->deckSummary(Deck::whereKey($user->selected_deck_id))->first()
                 : null,
-            'activeSource' => $user->active_source?->value ?? null,
+            'activeSource' => $user->active_source?->value,
             // 直接按外键查询，避免模型关系缓存导致的陈旧卡组
             'selectedScope' => $user->selected_deck_id !== null
                 ? $this->scopeTree($user, Deck::findOrFail($user->selected_deck_id))
@@ -140,16 +142,16 @@ class SelectController extends Controller
             ->flip();
 
         return $deck->sections()
-            ->with(['cards' => fn ($q) => $q->orderBy('position')->select('id', 'section_id', 'question')])
+            ->with('cards')
             ->get()
-            ->map(fn ($section) => [
+            ->map(fn (Section $section) => [
                 'id' => $section->id,
                 'name' => $section->name,
-                'cards' => $section->cards->map(fn ($card) => [
+                'cards' => $section->cards->map(fn (Card $card) => [
                     'id' => $card->id,
                     'question' => $card->question,
                     'checked' => ! $excluded->has($card->id),
-                ])->values(),
+                ])->values()->all(),
             ])
             ->values()
             ->all();
@@ -158,23 +160,26 @@ class SelectController extends Controller
     /**
      * 卡组摘要：名称、卡片总数与子卡组（含各自卡片数）。
      *
+     * @param  Builder<Deck>  $query
      * @return Collection<int, array{id: int, name: string, cards_count: int, sections: Collection<int, array{id: int, name: string, cards_count: int}>}>
      */
-    private function deckSummary($query)
+    private function deckSummary(Builder $query)
     {
         return $query
             ->withCount('cards')
-            ->with(['sections' => fn ($q) => $q->withCount('cards')->orderBy('position')])
             ->get()
             ->map(fn (Deck $deck) => [
                 'id' => $deck->id,
                 'name' => $deck->name,
                 'cards_count' => $deck->cards_count,
-                'sections' => $deck->sections->map(fn ($section) => [
-                    'id' => $section->id,
-                    'name' => $section->name,
-                    'cards_count' => $section->cards_count,
-                ]),
+                'sections' => $deck->sections()
+                    ->withCount('cards')
+                    ->get()
+                    ->map(fn (Section $section) => [
+                        'id' => $section->id,
+                        'name' => $section->name,
+                        'cards_count' => $section->cards_count,
+                    ]),
             ]);
     }
 }

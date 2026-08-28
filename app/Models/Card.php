@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $section_id
+ * @property string $question
+ * @property string $answer
+ * @property int $position
+ * @property-read Section $section
+ * @property-read string|null $deck_name
+ * @property-read string|null $section_name
+ */
 class Card extends Model
 {
     /** @use HasFactory<CardFactory> */
@@ -15,11 +25,13 @@ class Card extends Model
 
     protected $fillable = ['section_id', 'question', 'answer', 'position'];
 
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
+    /** @return HasMany<Evaluation, $this> */
     public function evaluations(): HasMany
     {
         return $this->hasMany(Evaluation::class);

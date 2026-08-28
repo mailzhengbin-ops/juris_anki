@@ -22,7 +22,7 @@ class RecitationService
      * 计算背诵页状态（评价驱动，纯翻看不推进）。
      *
      * @param  bool  $forceFresh  已完成状态下请求"再背一轮"时强制回到未开始
-     * @return array{source: string, phase: string, progress: array{evaluated: int, total: int}, card: array|null, task: array|null}
+     * @return array{source: string, phase: string, progress: array{evaluated: int, total: int}, card: array<string, mixed>|null, task: array<string, mixed>|null}
      */
     public function state(User $user, SourceType $source, bool $forceFresh = false): array
     {
@@ -75,20 +75,21 @@ class RecitationService
         }
 
         $nextCardId = $unevaluatedIds->first();
+        $state = $this->baseState($source, 'active');
+        $state['progress'] = ['evaluated' => $evaluatedInScope, 'total' => $total];
+        $state['card'] = $this->cardPayload(
+            $user,
+            $nextCardId,
+            $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $nextCardId) : null,
+        );
 
-        return [
-            ...$this->baseState($source, 'active'),
-            'progress' => ['evaluated' => $evaluatedInScope, 'total' => $total],
-            'card' => $this->cardPayload(
-                $user,
-                $nextCardId,
-                $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $nextCardId) : null,
-            ),
-        ];
+        return $state;
     }
 
     /**
      * 评价一张卡片：创建任务（首次评价时）、追加评价日志、实时完成判定。
+     *
+     * @return array<string, mixed>
      *
      * @throws ValidationException
      */
@@ -128,6 +129,8 @@ class RecitationService
 
     /**
      * 撤销当前任务最后一次评价；任务若因此未完成则重开。
+     *
+     * @return array<string, mixed>
      */
     public function undo(User $user, SourceType $source): array
     {
@@ -294,22 +297,23 @@ class RecitationService
 
     /**
      * @param  Collection<int, int>  $scopeIds
+     * @return array{source: string, phase: string, progress: array{evaluated: int, total: int}, card: array<string, mixed>|null, task: array<string, mixed>|null}
      */
     private function freshState(User $user, SourceType $source, Collection $scopeIds, int $total): array
     {
         $firstCardId = $scopeIds->first();
+        $state = $this->baseState($source, 'fresh');
+        $state['progress'] = ['evaluated' => 0, 'total' => $total];
+        $state['card'] = $this->cardPayload(
+            $user,
+            $firstCardId,
+            $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $firstCardId) : null,
+        );
 
-        return [
-            ...$this->baseState($source, 'fresh'),
-            'progress' => ['evaluated' => 0, 'total' => $total],
-            'card' => $this->cardPayload(
-                $user,
-                $firstCardId,
-                $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $firstCardId) : null,
-            ),
-        ];
+        return $state;
     }
 
+    /** @return array{source: string, phase: string, progress: array{evaluated: int, total: int}, card: array<string, mixed>|null, task: array<string, mixed>|null} */
     private function completedState(SourceType $source, Task $task): array
     {
         $stats = $task->evaluations()
@@ -318,16 +322,16 @@ class RecitationService
             ->map->count()
             ->all();
 
-        return [
-            ...$this->baseState($source, 'completed'),
-            'task' => [
-                'stats' => [
-                    'known' => $stats['known'] ?? 0,
-                    'fuzzy' => $stats['fuzzy'] ?? 0,
-                    'forgotten' => $stats['forgotten'] ?? 0,
-                ],
+        $state = $this->baseState($source, 'completed');
+        $state['task'] = [
+            'stats' => [
+                'known' => $stats['known'] ?? 0,
+                'fuzzy' => $stats['fuzzy'] ?? 0,
+                'forgotten' => $stats['forgotten'] ?? 0,
             ],
         ];
+
+        return $state;
     }
 
     /**
@@ -348,14 +352,14 @@ class RecitationService
             'question' => $card->question,
             'answer' => $card->answer,
             'path' => $card->path(),
-            'enrolled' => $enrolled?->value ?? null,
+            'enrolled' => $enrolled?->value,
             'history' => [
                 'total' => $history->count(),
                 'known' => $history->where('rating', Rating::Known)->count(),
                 'fuzzy' => $history->where('rating', Rating::Fuzzy)->count(),
                 'forgotten' => $history->where('rating', Rating::Forgotten)->count(),
-                'last_rating' => $last?->rating->value ?? null,
-                'last_at' => $last?->created_at?->toIso8601String() ?? null,
+                'last_rating' => $last?->rating->value,
+                'last_at' => $last?->created_at->toIso8601String(),
             ],
         ];
     }
