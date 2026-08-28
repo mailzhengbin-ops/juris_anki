@@ -14,3 +14,7 @@
 - [ ] 取消勾选的卡片不再属于该源的背诵范围（后端状态可验证）
 - [ ] 更换自选卡后再换回，勾选状态原样恢复
 - [ ] feature 测试覆盖默认全选、单卡/整级/全选清空切换、换卡组后恢复
+
+## Comments
+
+- 2026-08-28 实施完成：选卡页"当前在背"模块（自选卡/错题本源 tab，错题本占位待工单 06）；卡组树三态复选框（单卡/子卡组/全选清空，点选即存，实时生效）；POST select/source 设置当前背诵源；POST scope/toggle（card/section/deck/source 四类展开，越权卡 404，无自选卡 422）。关键修复：SelectController 的 selectedScope 改按外键直查（模型关系缓存跨请求复用同一用户实例时返回陈旧卡组）。ScopeToggleTest 11 例 + SelectTest 扩充；全量测试 75 通过。

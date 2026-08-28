@@ -75,4 +75,9 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(Task::class);
     }
+
+    public function scopeExclusions(): HasMany
+    {
+        return $this->hasMany(ScopeExclusion::class);
+    }
 }
