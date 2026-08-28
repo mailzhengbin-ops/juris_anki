@@ -89,7 +89,7 @@ test('rating creates a task and advances in tree order', function () {
     $this->post(route('recite.rate'), [
         'card_id' => $cards[0]->id,
         'rating' => 'known',
-    ])->assertRedirect(route('recite'));
+    ])->assertOk();
 
     expect(Task::count())->toBe(1)
         ->and(Evaluation::count())->toBe(1);
@@ -189,7 +189,7 @@ test('undo removes the last evaluation and returns to the card', function () {
 
     $this->post(route('recite.rate'), ['card_id' => $cards[0]->id, 'rating' => 'known']);
 
-    $this->post(route('recite.undo'))->assertRedirect(route('recite'));
+    $this->post(route('recite.undo'))->assertOk();
 
     expect(Evaluation::count())->toBe(0);
 
@@ -242,7 +242,7 @@ test('unchecking an evaluated card shrinks the progress denominator and numerato
 
     $this->post(route('recite.rate'), ['card_id' => $cards[0]->id, 'rating' => 'known']);
 
-    ScopeExclusion::create(['user_id' => $user->id, 'card_id' => $cards[0]->id]);
+    ScopeExclusion::create(['user_id' => $user->id, 'source' => 'selected', 'card_id' => $cards[0]->id]);
 
     $this->get(route('recite'))
         ->assertInertia(fn ($page) => $page
@@ -259,7 +259,7 @@ test('rechecking an evaluated card does not show it again in the current task', 
 
     $this->post(route('recite.rate'), ['card_id' => $cards[0]->id, 'rating' => 'known']);
 
-    ScopeExclusion::create(['user_id' => $user->id, 'card_id' => $cards[0]->id]);
+    ScopeExclusion::create(['user_id' => $user->id, 'source' => 'selected', 'card_id' => $cards[0]->id]);
     ScopeExclusion::where('user_id', $user->id)->where('card_id', $cards[0]->id)->delete();
 
     $this->get(route('recite'))
@@ -297,4 +297,41 @@ test('the mistake source is empty when no card is in the book', function () {
 test('guests cannot rate or undo', function () {
     $this->post(route('recite.rate'))->assertRedirect(route('login'));
     $this->post(route('recite.undo'))->assertRedirect(route('login'));
+});
+
+test('the recite page never writes to the database', function () {
+    [$deck, $cards] = setupRecitation();
+    $user = $deck->owner;
+    actingAs($user);
+
+    $this->post(route('recite.rate'), ['card_id' => $cards[0]->id, 'rating' => 'known']);
+    $this->post(route('recite.rate'), ['card_id' => $cards[1]->id, 'rating' => 'known']);
+
+    foreach ([$cards[2], $cards[3]] as $card) {
+        ScopeExclusion::create(['user_id' => $user->id, 'source' => 'selected', 'card_id' => $card->id]);
+    }
+
+    // 范围收缩耗尽任务：GET 推导出完成，但不落库（纯读）
+    $this->get(route('recite'))->assertInertia(fn ($page) => $page->where('state.phase', 'completed'));
+
+    expect(Task::first()->completed_at)->toBeNull();
+});
+
+test('rating after a derived completion closes the exhausted task and starts a new one', function () {
+    [$deck, $cards] = setupRecitation();
+    actingAs($deck->owner);
+
+    foreach ($cards as $card) {
+        $this->post(route('recite.rate'), ['card_id' => $card->id, 'rating' => 'known']);
+    }
+
+    expect(Task::first()->completed_at)->toBeNull();
+
+    // "再背一轮"后评价：旧任务被收尾，评价归入新任务
+    $this->get(route('recite', ['start' => 1]));
+    $this->post(route('recite.rate'), ['card_id' => $cards[0]->id, 'rating' => 'fuzzy']);
+
+    expect(Task::count())->toBe(2)
+        ->and(Task::orderBy('id')->first()->completed_at)->not->toBeNull()
+        ->and(Evaluation::latest('id')->first()->task_id)->toBe(Task::orderByDesc('id')->first()->id);
 });

@@ -41,7 +41,7 @@ class AdminDeckController extends Controller
     public function import(Request $request, DeckImportService $service): RedirectResponse
     {
         $request->validate([
-            'document' => ['required', 'file', 'max:2048'],
+            'document' => ['required', 'file'],
         ]);
 
         $deck = $service->importFor(null, $request->file('document')->getContent());

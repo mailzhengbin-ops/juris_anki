@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\SourceType;
 use App\Models\Card;
 use App\Models\Deck;
-use App\Models\ScopeExclusion;
 use App\Models\Section;
 use App\Models\User;
-use App\Services\RecitationService;
+use App\Services\ScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +18,7 @@ use Inertia\Response;
 
 class SelectController extends Controller
 {
-    public function __construct(private readonly RecitationService $recitation) {}
+    public function __construct(private readonly ScopeService $scope) {}
 
     /**
      * 展示选卡页面（卡组仓库 + 当前背诵源 + 背诵范围）。
@@ -52,8 +51,8 @@ class SelectController extends Controller
      */
     private function mistakeScopeTree(User $user): array
     {
-        $excluded = ScopeExclusion::where('user_id', $user->id)->pluck('card_id');
-        $membership = $this->recitation->mistakeMembership($user);
+        $excluded = $this->scope->excludedCardIds($user, SourceType::Mistake);
+        $membership = $this->scope->mistakeMembership($user);
 
         return [
             $this->mistakeGroupPayload($user, 'forgotten', '忘记', $membership['forgotten'], $excluded),
@@ -136,10 +135,7 @@ class SelectController extends Controller
      */
     private function scopeTree(User $user, Deck $deck): array
     {
-        $excluded = ScopeExclusion::where('user_id', $user->id)
-            ->whereIn('card_id', $deck->cards()->pluck('cards.id'))
-            ->pluck('card_id')
-            ->flip();
+        $excluded = $this->scope->excludedCardIds($user, SourceType::Selected)->flip();
 
         return $deck->sections()
             ->with('cards')

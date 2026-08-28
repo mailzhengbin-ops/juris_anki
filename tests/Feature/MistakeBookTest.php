@@ -38,7 +38,7 @@ function rateCard(User $user, Card $card, string $rating): void
     test()->post(route('recite.rate'), [
         'card_id' => $card->id,
         'rating' => $rating,
-    ])->assertRedirect(route('recite'));
+    ])->assertOk();
 }
 
 test('rating a card forgotten enrolls it in the mistake book', function () {

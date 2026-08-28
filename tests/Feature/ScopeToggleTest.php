@@ -77,7 +77,7 @@ test('unchecking a card records an exclusion that persists', function () {
 test('rechecking a card removes the exclusion', function () {
     [$deck, $sections] = createDeckWithSections(User::factory()->create());
     $card = $sections[0]->cards()->first();
-    ScopeExclusion::create(['user_id' => $deck->user_id, 'card_id' => $card->id]);
+    ScopeExclusion::create(['user_id' => $deck->user_id, 'source' => 'selected', 'card_id' => $card->id]);
 
     $user = $deck->owner;
     $user->update(['selected_deck_id' => $deck->id]);
@@ -244,4 +244,54 @@ test('clicking a source tab sets the active source', function () {
 
     $this->get(route('select'))
         ->assertInertia(fn ($page) => $page->where('activeSource', 'selected'));
+});
+
+test('exclusions are independent between sources', function () {
+    [$deck, $sections] = createDeckWithSections(User::factory()->create());
+    $inBook = $sections[0]->cards()->first();
+    $user = $deck->owner;
+    $user->update(['selected_deck_id' => $deck->id]);
+    $task = Task::create(['user_id' => $user->id, 'source_type' => 'mistake', 'started_at' => now()]);
+    Evaluation::create([
+        'user_id' => $user->id,
+        'card_id' => $inBook->id,
+        'task_id' => $task->id,
+        'rating' => 'forgotten',
+    ]);
+    actingAs($user);
+
+    // 错题本取消勾选：只影响错题本源
+    $this->post(route('scope.toggle'), [
+        'source' => 'mistake',
+        'type' => 'card',
+        'id' => $inBook->id,
+        'checked' => false,
+    ]);
+
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedScope.0.cards.0.checked', true)
+            ->where('mistakeScope.0.cards.0.checked', false)
+        );
+
+    // 自选卡取消勾选同一张卡：两个源各自独立
+    $this->post(route('scope.toggle'), [
+        'source' => 'selected',
+        'type' => 'card',
+        'id' => $inBook->id,
+        'checked' => false,
+    ]);
+
+    // 错题本全选恢复：自选卡的排除不受影响
+    $this->post(route('scope.toggle'), [
+        'source' => 'mistake',
+        'type' => 'source',
+        'checked' => true,
+    ]);
+
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedScope.0.cards.0.checked', false)
+            ->where('mistakeScope.0.cards.0.checked', true)
+        );
 });

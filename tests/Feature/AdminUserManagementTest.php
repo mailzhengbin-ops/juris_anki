@@ -86,7 +86,7 @@ test('deleting a user cascades all of their data', function () {
     $card = Card::factory()->create(['section_id' => $section->id, 'position' => 1]);
     $task = Task::create(['user_id' => $user->id, 'source_type' => 'selected', 'source_deck_id' => $deck->id, 'started_at' => now()]);
     Evaluation::create(['user_id' => $user->id, 'card_id' => $card->id, 'task_id' => $task->id, 'rating' => 'known']);
-    ScopeExclusion::create(['user_id' => $user->id, 'card_id' => $card->id]);
+    ScopeExclusion::create(['user_id' => $user->id, 'source' => 'selected', 'card_id' => $card->id]);
     actingAs($admin);
 
     $this->delete(route('admin.users.destroy', $user))->assertRedirect(route('admin.users'));
