@@ -21,14 +21,17 @@ type DeckSummary = {
     }>;
 };
 
-type ScopeSection = {
+type ScopeCard = {
     id: number;
+    question: string;
+    checked: boolean;
+    path?: string;
+};
+
+type ScopeSection = {
+    id: number | string;
     name: string;
-    cards: Array<{
-        id: number;
-        question: string;
-        checked: boolean;
-    }>;
+    cards: ScopeCard[];
 };
 
 type PageProps = {
@@ -39,6 +42,7 @@ type PageProps = {
     selectedDeck: DeckSummary | null;
     activeSource: 'selected' | 'mistake' | null;
     selectedScope: ScopeSection[] | null;
+    mistakeScope: ScopeSection[] | null;
     errors: Record<string, string>;
 };
 
@@ -51,13 +55,14 @@ export default function Select() {
         selectedDeck,
         activeSource,
         selectedScope,
+        mistakeScope,
         errors,
     } = usePage<PageProps>().props;
     const [tab, setTab] = useState<Tab>('system');
     const [detail, setDetail] = useState<DeckSummary | null>(null);
     const [processing, setProcessing] = useState(false);
     const [importing, setImporting] = useState(false);
-    const [expanded, setExpanded] = useState<Set<number>>(new Set());
+    const [expanded, setExpanded] = useState<Set<string>>(new Set());
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const decks = tab === 'system' ? warehouse.systemDecks : warehouse.userDecks;
@@ -83,7 +88,7 @@ export default function Select() {
         }
     }
 
-    function toggleExpanded(sectionId: number) {
+    function toggleExpanded(sectionId: string) {
         setExpanded((prev) => {
             const next = new Set(prev);
 
@@ -98,13 +103,14 @@ export default function Select() {
     }
 
     function postScope(
+        source: 'selected' | 'mistake',
         type: 'card' | 'section' | 'source',
-        id: number | undefined,
+        id: number | string | undefined,
         checked: boolean,
     ) {
         router.post(
             ScopeController.toggle.url(),
-            { source: 'selected', type, id, checked },
+            { source, type, id, checked },
             {
                 preserveScroll: true,
                 onError: () => toast.error('操作失败，请重试'),
@@ -191,28 +197,44 @@ export default function Select() {
                         </div>
                     </div>
 
-                    {sourceTab === 'selected' ? (
-                        selectedScope ? (
+                    {(() => {
+                        const scopeTree =
+                            sourceTab === 'selected' ? selectedScope : mistakeScope;
+
+                        if (!scopeTree) {
+                            return (
+                                <Card>
+                                    <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                                        {sourceTab === 'selected'
+                                            ? '尚未选择自选卡，请从下方卡组仓库选择'
+                                            : '错题本暂无卡片'}
+                                    </CardContent>
+                                </Card>
+                            );
+                        }
+
+                        return (
                             <>
                                 <div className="flex justify-end gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => postScope('source', undefined, true)}
+                                        onClick={() => postScope(sourceTab, 'source', undefined, true)}
                                     >
                                         全选
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => postScope('source', undefined, false)}
+                                        onClick={() => postScope(sourceTab, 'source', undefined, false)}
                                     >
                                         清空
                                     </Button>
                                 </div>
 
                                 <div className="space-y-2">
-                                    {selectedScope.map((section) => {
+                                    {scopeTree.map((section) => {
+                                        const sectionKey = String(section.id);
                                         const checkedCount = section.cards.filter(
                                             (card) => card.checked,
                                         ).length;
@@ -220,11 +242,11 @@ export default function Select() {
                                             checkedCount === section.cards.length;
                                         const partial =
                                             checkedCount > 0 && !allChecked;
-                                        const isExpanded = expanded.has(section.id);
+                                        const isExpanded = expanded.has(sectionKey);
 
                                         return (
                                             <div
-                                                key={section.id}
+                                                key={sectionKey}
                                                 className="rounded-lg border"
                                             >
                                                 <div className="flex items-center gap-2 p-3">
@@ -236,6 +258,7 @@ export default function Select() {
                                                         }
                                                         onCheckedChange={(value) =>
                                                             postScope(
+                                                                sourceTab,
                                                                 'section',
                                                                 section.id,
                                                                 value === true,
@@ -246,7 +269,7 @@ export default function Select() {
                                                         type="button"
                                                         className="flex flex-1 items-center gap-2 text-left"
                                                         onClick={() =>
-                                                            toggleExpanded(section.id)
+                                                            toggleExpanded(sectionKey)
                                                         }
                                                     >
                                                         <ChevronRight
@@ -277,6 +300,7 @@ export default function Select() {
                                                                     checked={card.checked}
                                                                     onCheckedChange={(value) =>
                                                                         postScope(
+                                                                            sourceTab,
                                                                             'card',
                                                                             card.id,
                                                                             value === true,
@@ -286,6 +310,11 @@ export default function Select() {
                                                                 <span className="text-sm">
                                                                     {card.question}
                                                                 </span>
+                                                                {card.path && (
+                                                                    <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                                                                        {card.path}
+                                                                    </span>
+                                                                )}
                                                             </li>
                                                         ))}
                                                     </ul>
@@ -295,20 +324,8 @@ export default function Select() {
                                     })}
                                 </div>
                             </>
-                        ) : (
-                            <Card>
-                                <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                                    尚未选择自选卡，请从下方卡组仓库选择
-                                </CardContent>
-                            </Card>
-                        )
-                    ) : (
-                        <Card>
-                            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                                错题本功能建设中
-                            </CardContent>
-                        </Card>
-                    )}
+                        );
+                    })()}
                 </section>
 
                 {/* 卡组仓库模块 */}

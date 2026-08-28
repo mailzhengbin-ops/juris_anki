@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\SourceType;
+use App\Models\Card;
 use App\Models\Deck;
 use App\Models\ScopeExclusion;
 use App\Models\User;
+use App\Services\RecitationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -15,6 +17,8 @@ use Inertia\Response;
 
 class SelectController extends Controller
 {
+    public function __construct(private readonly RecitationService $recitation) {}
+
     /**
      * 展示选卡页面（卡组仓库 + 当前背诵源 + 背诵范围）。
      */
@@ -35,7 +39,54 @@ class SelectController extends Controller
             'selectedScope' => $user->selected_deck_id !== null
                 ? $this->scopeTree($user, Deck::findOrFail($user->selected_deck_id))
                 : null,
+            'mistakeScope' => $this->mistakeScopeTree($user),
         ]);
+    }
+
+    /**
+     * 错题本范围树：忘记/模糊两个子组，卡片按原属卡组树顺序。
+     *
+     * @return array<int, array{id: string, name: string, cards: array<int, array{id: int, question: string, path: string, checked: bool}>}>
+     */
+    private function mistakeScopeTree(User $user): array
+    {
+        $excluded = ScopeExclusion::where('user_id', $user->id)->pluck('card_id');
+        $membership = $this->recitation->mistakeMembership($user);
+
+        return [
+            $this->mistakeGroupPayload($user, 'forgotten', '忘记', $membership['forgotten'], $excluded),
+            $this->mistakeGroupPayload($user, 'fuzzy', '模糊', $membership['fuzzy'], $excluded),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, int>  $cardIds
+     * @param  Collection<int, int>  $excluded
+     * @return array{id: string, name: string, cards: array<int, array{id: int, question: string, path: string, checked: bool}>}
+     */
+    private function mistakeGroupPayload(User $user, string $id, string $name, Collection $cardIds, Collection $excluded): array
+    {
+        $cards = Card::query()
+            ->join('sections', 'cards.section_id', '=', 'sections.id')
+            ->join('decks', 'sections.deck_id', '=', 'decks.id')
+            ->whereIn('cards.id', $cardIds)
+            ->orderBy('sections.position')
+            ->orderBy('cards.position')
+            ->get(['cards.id', 'cards.question', 'sections.name as section_name', 'decks.name as deck_name']);
+
+        return [
+            'id' => $id,
+            'name' => $name,
+            'cards' => $cards
+                ->map(fn (Card $card) => [
+                    'id' => $card->id,
+                    'question' => $card->question,
+                    'path' => "{$card->deck_name} / {$card->section_name}",
+                    'checked' => ! $excluded->contains($card->id),
+                ])
+                ->values()
+                ->all(),
+        ];
     }
 
     /**

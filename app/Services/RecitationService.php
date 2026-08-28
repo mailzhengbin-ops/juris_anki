@@ -27,28 +27,31 @@ class RecitationService
     public function state(User $user, SourceType $source, bool $forceFresh = false): array
     {
         if ($source === SourceType::Mistake) {
-            return $this->baseState($source, 'unavailable');
+            $deckId = null;
+            $scopeIds = $this->mistakeScopeCardIds($user);
+        } else {
+            $deck = Deck::find($user->selected_deck_id);
+
+            if ($deck === null) {
+                return $this->baseState($source, 'empty');
+            }
+
+            $deckId = $deck->id;
+            $scopeIds = $this->selectedScopeCardIds($user, $deck);
         }
 
-        $deck = Deck::find($user->selected_deck_id);
-
-        if ($deck === null) {
-            return $this->baseState($source, 'empty');
-        }
-
-        $scopeIds = $this->scopeCardIds($user, $deck);
         $total = $scopeIds->count();
 
         if ($total === 0) {
             return $this->baseState($source, 'empty');
         }
 
-        $task = $this->currentTask($user, $source, $deck->id);
+        $task = $this->currentTask($user, $source, $deckId);
 
         if ($task === null) {
             $completed = Task::where('user_id', $user->id)
                 ->where('source_type', $source)
-                ->where('source_deck_id', $deck->id)
+                ->where('source_deck_id', $deckId)
                 ->whereNotNull('completed_at')
                 ->latest('id')
                 ->first();
@@ -71,10 +74,16 @@ class RecitationService
             return $this->completedState($source, $task->fresh());
         }
 
+        $nextCardId = $unevaluatedIds->first();
+
         return [
             ...$this->baseState($source, 'active'),
             'progress' => ['evaluated' => $evaluatedInScope, 'total' => $total],
-            'card' => $this->cardPayload($user, $unevaluatedIds->first()),
+            'card' => $this->cardPayload(
+                $user,
+                $nextCardId,
+                $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $nextCardId) : null,
+            ),
         ];
     }
 
@@ -85,19 +94,25 @@ class RecitationService
      */
     public function rate(User $user, SourceType $source, int $cardId, Rating $rating): array
     {
-        $deck = Deck::find($user->selected_deck_id);
+        if ($source === SourceType::Mistake) {
+            $deckId = null;
+            $scopeIds = $this->mistakeScopeCardIds($user);
+        } else {
+            $deck = Deck::find($user->selected_deck_id);
 
-        abort_if($deck === null || $source === SourceType::Mistake, 422, '该背诵源暂不可用');
+            abort_if($deck === null, 422, '尚未选择自选卡');
 
-        $scopeIds = $this->scopeCardIds($user, $deck);
+            $deckId = $deck->id;
+            $scopeIds = $this->selectedScopeCardIds($user, $deck);
+        }
 
         abort_unless($scopeIds->contains($cardId), 422, '卡片不在当前背诵范围内');
 
-        $task = $this->currentTask($user, $source, $deck->id)
+        $task = $this->currentTask($user, $source, $deckId)
             ?? Task::create([
                 'user_id' => $user->id,
                 'source_type' => $source,
-                'source_deck_id' => $deck->id,
+                'source_deck_id' => $deckId,
                 'started_at' => now(),
             ]);
 
@@ -116,15 +131,17 @@ class RecitationService
      */
     public function undo(User $user, SourceType $source): array
     {
-        $deck = Deck::find($user->selected_deck_id);
+        $deckId = $source === SourceType::Mistake
+            ? null
+            : Deck::find($user->selected_deck_id)?->id;
 
-        if ($deck === null || $source === SourceType::Mistake) {
+        if ($deckId === null && $source === SourceType::Selected) {
             return $this->state($user, $source);
         }
 
         $task = Task::where('user_id', $user->id)
             ->where('source_type', $source)
-            ->where('source_deck_id', $deck->id)
+            ->where('source_deck_id', $deckId)
             ->latest('id')
             ->first();
 
@@ -142,7 +159,10 @@ class RecitationService
 
         if ($task->completed_at !== null) {
             $evaluatedIds = $task->evaluations()->pluck('card_id');
-            $unevaluated = $this->scopeCardIds($user, $deck)->diff($evaluatedIds)->count();
+            $scopeIds = $source === SourceType::Mistake
+                ? $this->mistakeScopeCardIds($user)
+                : $this->selectedScopeCardIds($user, Deck::find($deckId));
+            $unevaluated = $scopeIds->diff($evaluatedIds)->count();
 
             if ($unevaluated > 0 || $evaluatedIds->isEmpty()) {
                 $task->update(['completed_at' => null]);
@@ -153,9 +173,50 @@ class RecitationService
     }
 
     /**
-     * 当前任务：该源（自选卡按当前所选卡组）最新一条未完成任务。
+     * 错题本在册成员：最新评价为"忘记"/"模糊"的卡片，按原属卡组树顺序。
+     *
+     * @return array{forgotten: Collection<int, int>, fuzzy: Collection<int, int>}
      */
-    private function currentTask(User $user, SourceType $source, int $deckId): ?Task
+    public function mistakeMembership(User $user): array
+    {
+        $latestPerCard = Evaluation::where('user_id', $user->id)
+            ->whereNotNull('card_id')
+            ->selectRaw('MAX(id) as id')
+            ->groupBy('card_id')
+            ->pluck('id');
+
+        $latest = Evaluation::whereIn('id', $latestPerCard)
+            ->get()
+            ->filter(fn (Evaluation $evaluation) => $evaluation->rating->enrollsInMistakeBook());
+
+        $forgotten = $latest->where('rating', Rating::Forgotten)->pluck('card_id');
+        $fuzzy = $latest->where('rating', Rating::Fuzzy)->pluck('card_id');
+
+        return [
+            'forgotten' => $this->inTreeOrder($forgotten),
+            'fuzzy' => $this->inTreeOrder($fuzzy),
+        ];
+    }
+
+    /**
+     * 某卡片当前的在册评价（不在册返回 null）。
+     */
+    private function enrolledRatingFor(User $user, int $cardId): ?Rating
+    {
+        $latest = Evaluation::where('user_id', $user->id)
+            ->where('card_id', $cardId)
+            ->latest('id')
+            ->first();
+
+        return $latest !== null && $latest->rating->enrollsInMistakeBook()
+            ? $latest->rating
+            : null;
+    }
+
+    /**
+     * 当前任务：该源（自选卡按当前所选卡组，错题本为 null）最新一条未完成任务。
+     */
+    private function currentTask(User $user, SourceType $source, ?int $deckId): ?Task
     {
         return Task::where('user_id', $user->id)
             ->where('source_type', $source)
@@ -166,11 +227,11 @@ class RecitationService
     }
 
     /**
-     * 背诵范围内的卡片（卡组树顺序）：卡组全部卡片减去取消勾选。
+     * 自选卡源的背诵范围（卡组树顺序）：卡组全部卡片减去取消勾选。
      *
      * @return Collection<int, int>
      */
-    private function scopeCardIds(User $user, Deck $deck): Collection
+    private function selectedScopeCardIds(User $user, Deck $deck): Collection
     {
         $excluded = ScopeExclusion::where('user_id', $user->id)
             ->pluck('card_id');
@@ -179,6 +240,39 @@ class RecitationService
             ->join('sections', 'cards.section_id', '=', 'sections.id')
             ->where('sections.deck_id', $deck->id)
             ->whereNotIn('cards.id', $excluded)
+            ->orderBy('sections.position')
+            ->orderBy('cards.position')
+            ->pluck('cards.id');
+    }
+
+    /**
+     * 错题本源的背诵范围（原属卡组树顺序）：在册卡片减去取消勾选。
+     *
+     * @return Collection<int, int>
+     */
+    private function mistakeScopeCardIds(User $user): Collection
+    {
+        $excluded = ScopeExclusion::where('user_id', $user->id)
+            ->pluck('card_id');
+
+        $membership = $this->mistakeMembership($user);
+
+        return $this->inTreeOrder(
+            $membership['forgotten']->merge($membership['fuzzy'])->unique()->diff($excluded),
+        );
+    }
+
+    /**
+     * 按原属卡组树顺序排序给定的卡片 ID 集合。
+     *
+     * @param  Collection<int, int>  $cardIds
+     * @return Collection<int, int>
+     */
+    private function inTreeOrder(Collection $cardIds): Collection
+    {
+        return Card::query()
+            ->join('sections', 'cards.section_id', '=', 'sections.id')
+            ->whereIn('cards.id', $cardIds)
             ->orderBy('sections.position')
             ->orderBy('cards.position')
             ->pluck('cards.id');
@@ -203,10 +297,16 @@ class RecitationService
      */
     private function freshState(User $user, SourceType $source, Collection $scopeIds, int $total): array
     {
+        $firstCardId = $scopeIds->first();
+
         return [
             ...$this->baseState($source, 'fresh'),
             'progress' => ['evaluated' => 0, 'total' => $total],
-            'card' => $this->cardPayload($user, $scopeIds->first()),
+            'card' => $this->cardPayload(
+                $user,
+                $firstCardId,
+                $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $firstCardId) : null,
+            ),
         ];
     }
 
@@ -230,7 +330,10 @@ class RecitationService
         ];
     }
 
-    private function cardPayload(User $user, int $cardId): array
+    /**
+     * @return array{id: int, question: string, answer: string, path: string, enrolled: string|null, history: array{total: int, known: int, fuzzy: int, forgotten: int, last_rating: string|null, last_at: string|null}}
+     */
+    private function cardPayload(User $user, int $cardId, ?Rating $enrolled = null): array
     {
         $card = Card::with('section.deck')->find($cardId);
 
@@ -245,6 +348,7 @@ class RecitationService
             'question' => $card->question,
             'answer' => $card->answer,
             'path' => $card->path(),
+            'enrolled' => $enrolled?->value ?? null,
             'history' => [
                 'total' => $history->count(),
                 'known' => $history->where('rating', Rating::Known)->count(),

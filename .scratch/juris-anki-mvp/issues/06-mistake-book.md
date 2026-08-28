@@ -14,3 +14,7 @@
 - [ ] 错题本支持单卡/整级勾选与全选/清空，默认全选，点选即存
 - [ ] 删除卡片后其在册状态随卡片消失，历史统计不受影响
 - [ ] feature 测试覆盖在册/出册/重入、并行任务、跨源联动
+
+## Comments
+
+- 2026-08-28 实施完成：RecitationService 支持错题本源（mistakeMembership 派生在册、原属树序、source_deck_id=null 独立任务线、跨源实时联动）；SelectController 错题本范围树（忘记/模糊子组 + 原属路径 + 勾选态）；ScopeController 错题本 toggle（子组 forgotten/fuzzy 整组、单卡、全选清空）；背诵页在册标签、错题本空态文案；选卡页错题本 tab 完整树。语义边界：评"认识"出册使错题本任务范围实时缩水（分子归零属预期）；清空错题本显示空态而非完成页。MistakeBookTest 8 例 + 相关测试更新；全量测试 98 通过。

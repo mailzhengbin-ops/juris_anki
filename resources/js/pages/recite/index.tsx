@@ -41,6 +41,7 @@ type CardPayload = {
     question: string;
     answer: string;
     path: string;
+    enrolled: 'fuzzy' | 'forgotten' | null;
     history: {
         total: number;
         known: number;
@@ -53,7 +54,7 @@ type CardPayload = {
 
 type RecitationState = {
     source: 'selected' | 'mistake';
-    phase: 'empty' | 'fresh' | 'active' | 'completed' | 'unavailable';
+    phase: 'empty' | 'fresh' | 'active' | 'completed';
     progress: { evaluated: number; total: number };
     card: CardPayload | null;
     task: {
@@ -124,7 +125,21 @@ function ReciteCard({
                     flipped && 'pointer-events-none opacity-0',
                 )}
             >
-                <p className="text-sm text-muted-foreground">{card.path}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">{card.path}</p>
+                    {card.enrolled && (
+                        <span
+                            className={cn(
+                                'rounded-full px-2 py-0.5 text-xs font-medium',
+                                card.enrolled === 'forgotten'
+                                    ? 'bg-red-100 text-red-600'
+                                    : 'bg-amber-100 text-amber-600',
+                            )}
+                        >
+                            {RATING_INFO[card.enrolled].label}
+                        </span>
+                    )}
+                </div>
                 <h2 className="text-lg font-semibold leading-relaxed">
                     {card.question}
                 </h2>
@@ -162,7 +177,21 @@ function ReciteCard({
                 )}
                 onClick={(event) => event.stopPropagation()}
             >
-                <p className="text-sm text-muted-foreground">{card.path}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">{card.path}</p>
+                    {card.enrolled && (
+                        <span
+                            className={cn(
+                                'rounded-full px-2 py-0.5 text-xs font-medium',
+                                card.enrolled === 'forgotten'
+                                    ? 'bg-red-100 text-red-600'
+                                    : 'bg-amber-100 text-amber-600',
+                            )}
+                        >
+                            {RATING_INFO[card.enrolled].label}
+                        </span>
+                    )}
+                </div>
                 <MarkdownContent content={card.answer} className="flex-1" />
                 <div className="grid grid-cols-3 gap-2">
                     {(Object.keys(RATING_INFO) as Rating[]).map((rating) => {
@@ -303,12 +332,12 @@ export default function Recite() {
                     </div>
                 </div>
 
-                {(state.phase === 'empty' || state.phase === 'unavailable') && (
+                {state.phase === 'empty' && (
                     <Card>
                         <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
-                            {state.phase === 'unavailable' ? (
+                            {state.source === 'mistake' ? (
                                 <p className="text-muted-foreground">
-                                    错题本功能建设中
+                                    错题本暂无卡片——把卡片评为「模糊」或「忘记」后会自动加入
                                 </p>
                             ) : (
                                 <>

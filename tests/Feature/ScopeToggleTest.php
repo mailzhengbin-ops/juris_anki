@@ -2,8 +2,10 @@
 
 use App\Models\Card;
 use App\Models\Deck;
+use App\Models\Evaluation;
 use App\Models\ScopeExclusion;
 use App\Models\Section;
+use App\Models\Task;
 use App\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -161,18 +163,42 @@ test('toggling a card outside the selected deck returns 404', function () {
     ])->assertNotFound();
 });
 
-test('the mistake source is not available yet', function () {
-    [$deck] = createDeckWithSections(User::factory()->create());
+test('the mistake source scope can be toggled and cleared', function () {
+    [$deck, $sections] = createDeckWithSections(User::factory()->create());
+    $inBook = $sections[0]->cards()->first();
+    Evaluation::create([
+        'user_id' => $deck->user_id,
+        'card_id' => $inBook->id,
+        'task_id' => Task::create([
+            'user_id' => $deck->user_id,
+            'source_type' => 'mistake',
+            'started_at' => now(),
+        ])->id,
+        'rating' => 'forgotten',
+    ]);
 
-    $user = User::factory()->create();
+    $user = $deck->owner;
     $user->update(['selected_deck_id' => $deck->id]);
     actingAs($user);
 
+    // 单卡取消勾选
+    $this->post(route('scope.toggle'), [
+        'source' => 'mistake',
+        'type' => 'card',
+        'id' => $inBook->id,
+        'checked' => false,
+    ])->assertRedirect(route('select'));
+
+    expect(ScopeExclusion::where('user_id', $user->id)->where('card_id', $inBook->id)->exists())->toBeTrue();
+
+    // 全选恢复
     $this->post(route('scope.toggle'), [
         'source' => 'mistake',
         'type' => 'source',
-        'checked' => false,
-    ])->assertStatus(422);
+        'checked' => true,
+    ])->assertRedirect(route('select'));
+
+    expect(ScopeExclusion::where('user_id', $user->id)->count())->toBe(0);
 });
 
 test('switching decks keeps exclusions per deck', function () {

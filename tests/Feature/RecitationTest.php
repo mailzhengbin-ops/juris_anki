@@ -277,15 +277,19 @@ test('rechecking an evaluated card does not show it again in the current task', 
     $this->get(route('recite'))->assertInertia(fn ($page) => $page->where('state.phase', 'completed'));
 });
 
-test('rating while the mistake source is active is not available yet', function () {
+test('the mistake source is empty when no card is in the book', function () {
     [$deck, $cards] = setupRecitation();
     $user = $deck->owner;
     $user->update(['active_source' => 'mistake']);
     actingAs($user);
 
     $this->get(route('recite'))
-        ->assertInertia(fn ($page) => $page->where('state.phase', 'unavailable'));
+        ->assertInertia(fn ($page) => $page
+            ->where('state.source', 'mistake')
+            ->where('state.phase', 'empty')
+        );
 
+    // 卡片不在错题本范围内，评价被拒绝
     $this->post(route('recite.rate'), ['card_id' => $cards[0]->id, 'rating' => 'known'])
         ->assertStatus(422);
 });
