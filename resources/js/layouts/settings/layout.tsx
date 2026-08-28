@@ -1,14 +1,16 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import { ShieldCheck } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
+import { dashboard as adminDashboard } from '@/routes/admin';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
-import type { NavItem } from '@/types';
+import type { Auth, NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -30,6 +32,7 @@ const sidebarNavItems: NavItem[] = [
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { auth } = usePage<{ auth: Auth }>().props;
 
     return (
         <div className="px-4 py-6">
@@ -59,6 +62,19 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 </Link>
                             </Button>
                         ))}
+                        {auth.user?.is_admin && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                asChild
+                                className="w-full justify-start text-muted-foreground"
+                            >
+                                <Link href={adminDashboard()}>
+                                    <ShieldCheck className="h-4 w-4" />
+                                    管理端
+                                </Link>
+                            </Button>
+                        )}
                     </nav>
                 </aside>
 

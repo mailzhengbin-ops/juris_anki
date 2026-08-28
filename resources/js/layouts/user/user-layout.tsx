@@ -1,6 +1,13 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { UserInfo } from '@/components/user-info';
+import { UserMenuContent } from '@/components/user-menu-content';
+import {
     isUserNavItemActive,
     primaryNavItems,
     profileNavItem
@@ -8,11 +15,14 @@ import {
 } from '@/lib/user-nav';
 import type {UserNavItem} from '@/lib/user-nav';
 import { cn } from '@/lib/utils';
+import type { Auth } from '@/types';
 
-/** 用户端布局：桌面顶部导航 + 移动端底部 tab */
+/** 用户端布局：桌面顶部导航（含用户菜单）+ 移动端底部 tab */
 export default function UserLayout({ children }: PropsWithChildren) {
     const items: UserNavItem[] = [...primaryNavItems(), profileNavItem()];
-    const { url } = usePage();
+    const page = usePage<{ auth: Auth }>();
+    const { url } = page;
+    const { auth } = page.props;
 
     return (
         <div className="min-h-svh bg-background">
@@ -35,6 +45,29 @@ export default function UserLayout({ children }: PropsWithChildren) {
                             </Link>
                         ))}
                     </nav>
+
+                    <div className="ml-auto">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    type="button"
+                                    className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    aria-label="用户菜单"
+                                >
+                                    <UserInfo
+                                        user={auth.user}
+                                        showEmail={false}
+                                    />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="end"
+                                className="w-56"
+                            >
+                                <UserMenuContent user={auth.user} />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </header>
 
