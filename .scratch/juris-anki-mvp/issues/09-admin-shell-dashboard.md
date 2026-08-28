@@ -12,3 +12,7 @@
 - [ ] 仪表盘展示 PHP/web 服务器/数据库/Laravel 版本信息
 - [ ] 管理布局含三处导航入口（卡片管理、用户管理为占位）
 - [ ] feature 测试覆盖权限隔离与仪表盘数据
+
+## Comments
+
+- 2026-08-28 实施完成：EnsureAdmin 中间件（非管理员 403）；routes/admin.php（auth+EnsureAdmin，/admin 前缀）；AdminController@dashboard（用户数/系统卡组数 + PHP/web 服务器/数据库/Laravel 版本）；管理端复用侧边栏布局（仪表盘/卡片管理/用户管理导航）；app.tsx 布局解析 admin/* → AppLayout；卡片管理与用户管理占位页。关键排障：wayfinder 不扫描 bootstrap then: 闭包注册的路由，改由 web.php require；路由分组按前缀生成在 @/routes/admin（dashboard/decks/users 命名导出）。AdminAccessTest 4 例；全量测试 110 通过。

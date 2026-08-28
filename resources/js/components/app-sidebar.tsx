@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { FolderKanban, LayoutDashboard, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -10,8 +11,11 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { primaryNavItems } from '@/lib/user-nav';
-import { recite } from '@/routes';
+import {
+    dashboard as adminDashboard,
+    decks as adminDecks,
+    users as adminUsers,
+} from '@/routes/admin';
 
 export function AppSidebar() {
     return (
@@ -20,7 +24,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={recite()} prefetch>
+                            <Link href={adminDashboard()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -29,16 +33,26 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                {primaryNavItems().map((item) => (
-                    <SidebarMenu key={item.title}>
-                        <SidebarMenuButton asChild>
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenu>
-                ))}
+                <SidebarMenu>
+                    <SidebarMenuButton asChild>
+                        <Link href={adminDashboard()} prefetch>
+                            <LayoutDashboard />
+                            <span>仪表盘</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    <SidebarMenuButton asChild>
+                        <Link href={adminDecks()} prefetch>
+                            <FolderKanban />
+                            <span>卡片管理</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    <SidebarMenuButton asChild>
+                        <Link href={adminUsers()} prefetch>
+                            <Users />
+                            <span>用户管理</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenu>
             </SidebarContent>
 
             <SidebarFooter>

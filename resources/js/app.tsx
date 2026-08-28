@@ -23,6 +23,8 @@ createInertiaApp({
             case name.startsWith('select/'):
             case name.startsWith('stats/'):
                 return UserLayout;
+            case name.startsWith('admin/'):
+                return AppLayout;
             default:
                 return AppLayout;
         }
