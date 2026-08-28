@@ -89,35 +89,46 @@ function formatRelativeTime(iso: string): string {
     return days === 1 ? '昨天' : `${days} 天前`;
 }
 
+function CardHeader({ card }: { card: CardPayload }) {
+    return (
+        <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">{card.path}</p>
+            {card.enrolled && (
+                <span
+                    className={cn(
+                        'rounded-full px-2 py-0.5 text-xs font-medium',
+                        card.enrolled === 'forgotten'
+                            ? 'bg-red-100 text-red-600'
+                            : 'bg-amber-100 text-amber-600',
+                    )}
+                >
+                    {RATING_INFO[card.enrolled].label}
+                </span>
+            )}
+        </div>
+    );
+}
+
+/**
+ * 卡片展示模块：正反面翻转（受控）。
+ */
 function ReciteCard({
     card,
-    disabled,
-    onRate,
-    onUndo,
+    flipped,
+    onFlip,
 }: {
     card: CardPayload;
-    disabled: boolean;
-    onRate: (rating: Rating) => void;
-    onUndo: () => void;
+    flipped: boolean;
+    onFlip: () => void;
 }) {
-    const [flipped, setFlipped] = useState(false);
-
-    // 空格翻面（组件随卡片 key 重建，无需清理跨卡监听）
-    useEffect(() => {
-        function onKeyDown(event: KeyboardEvent) {
-            if (event.code === 'Space') {
-                event.preventDefault();
-                setFlipped((value) => !value);
-            }
-        }
-
-        window.addEventListener('keydown', onKeyDown);
-
-        return () => window.removeEventListener('keydown', onKeyDown);
-    }, []);
-
     return (
-        <div className="relative min-h-[16rem]" onClick={() => setFlipped((value) => !value)}>
+        <div
+            className="relative min-h-[16rem]"
+            onClick={onFlip}
+            role="button"
+            tabIndex={0}
+            aria-label={flipped ? '翻回正面' : '翻面查看答案'}
+        >
             {/* 正面：问题 */}
             <div
                 className={cn(
@@ -125,21 +136,7 @@ function ReciteCard({
                     flipped && 'pointer-events-none opacity-0',
                 )}
             >
-                <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground">{card.path}</p>
-                    {card.enrolled && (
-                        <span
-                            className={cn(
-                                'rounded-full px-2 py-0.5 text-xs font-medium',
-                                card.enrolled === 'forgotten'
-                                    ? 'bg-red-100 text-red-600'
-                                    : 'bg-amber-100 text-amber-600',
-                            )}
-                        >
-                            {RATING_INFO[card.enrolled].label}
-                        </span>
-                    )}
-                </div>
+                <CardHeader card={card} />
                 <h2 className="text-lg font-semibold leading-relaxed">
                     {card.question}
                 </h2>
@@ -169,7 +166,7 @@ function ReciteCard({
                 )}
             </div>
 
-            {/* 反面：答案 + 评价 */}
+            {/* 反面：答案 */}
             <div
                 className={cn(
                     'absolute inset-0 flex flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
@@ -177,22 +174,28 @@ function ReciteCard({
                 )}
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground">{card.path}</p>
-                    {card.enrolled && (
-                        <span
-                            className={cn(
-                                'rounded-full px-2 py-0.5 text-xs font-medium',
-                                card.enrolled === 'forgotten'
-                                    ? 'bg-red-100 text-red-600'
-                                    : 'bg-amber-100 text-amber-600',
-                            )}
-                        >
-                            {RATING_INFO[card.enrolled].label}
-                        </span>
-                    )}
-                </div>
+                <CardHeader card={card} />
                 <MarkdownContent content={card.answer} className="flex-1" />
+            </div>
+        </div>
+    );
+}
+
+/**
+ * 用户评价模块：翻面后出现，固定在屏幕底部（移动端位于底部 tab 上方）。
+ */
+function RatingBar({
+    disabled,
+    onRate,
+    onUndo,
+}: {
+    disabled: boolean;
+    onRate: (rating: Rating) => void;
+    onUndo: () => void;
+}) {
+    return (
+        <div className="fixed inset-x-0 bottom-20 z-40 mx-auto w-full max-w-2xl px-4 md:bottom-6">
+            <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 shadow-lg">
                 <div className="grid grid-cols-3 gap-2">
                     {(Object.keys(RATING_INFO) as Rating[]).map((rating) => {
                         const { label, className, Icon } = RATING_INFO[rating];
@@ -220,6 +223,70 @@ function ReciteCard({
                     撤销上一次评价
                 </Button>
             </div>
+        </div>
+    );
+}
+
+/**
+ * 单张卡片的背诵会话：翻面状态 + 快捷键（组件随卡片 key 重建，翻面状态自动复位）。
+ */
+function ReciteSession({
+    card,
+    disabled,
+    onRate,
+    onUndo,
+}: {
+    card: CardPayload;
+    disabled: boolean;
+    onRate: (rating: Rating) => void;
+    onUndo: () => void;
+}) {
+    const [flipped, setFlipped] = useState(false);
+
+    // 空格翻面；1/2/3 评价与 U 撤销仅在翻面后生效
+    useEffect(() => {
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                setFlipped((value) => !value);
+
+                return;
+            }
+
+            if (!flipped) {
+                return;
+            }
+
+            if (event.key === '1') {
+                onRate('known');
+            } else if (event.key === '2') {
+                onRate('fuzzy');
+            } else if (event.key === '3') {
+                onRate('forgotten');
+            } else if (event.key.toLowerCase() === 'u') {
+                onUndo();
+            }
+        }
+
+        window.addEventListener('keydown', onKeyDown);
+
+        return () => window.removeEventListener('keydown', onKeyDown);
+    });
+
+    return (
+        <div className={cn(flipped && 'pb-40 md:pb-32')}>
+            <ReciteCard
+                card={card}
+                flipped={flipped}
+                onFlip={() => setFlipped((value) => !value)}
+            />
+            {flipped && (
+                <RatingBar
+                    disabled={disabled}
+                    onRate={onRate}
+                    onUndo={onUndo}
+                />
+            )}
         </div>
     );
 }
@@ -268,31 +335,6 @@ export default function Recite() {
             onFinish: () => setProcessing(false),
         });
     }
-
-    // 键盘 1/2/3 评价、U 撤销（仅背诵中）
-    useEffect(() => {
-        function onKeyDown(event: KeyboardEvent) {
-            const inSession = state.phase === 'active' || state.phase === 'fresh';
-
-            if (!inSession) {
-                return;
-            }
-
-            if (event.key === '1') {
-                rate('known');
-            } else if (event.key === '2') {
-                rate('fuzzy');
-            } else if (event.key === '3') {
-                rate('forgotten');
-            } else if (event.key.toLowerCase() === 'u') {
-                undo();
-            }
-        }
-
-        window.addEventListener('keydown', onKeyDown);
-
-        return () => window.removeEventListener('keydown', onKeyDown);
-    });
 
     const percent =
         state.progress.total > 0
@@ -392,7 +434,7 @@ export default function Recite() {
                 {(state.phase === 'fresh' || state.phase === 'active') &&
                     state.card && (
                         <>
-                            {/* 背诵进度 */}
+                            {/* 背诵进度模块 */}
                             <div className="space-y-1">
                                 <div className="flex justify-between text-sm text-muted-foreground">
                                     <span>
@@ -409,7 +451,8 @@ export default function Recite() {
                                 </div>
                             </div>
 
-                            <ReciteCard
+                            {/* 卡片展示模块 + 用户评价模块 */}
+                            <ReciteSession
                                 key={state.card.id}
                                 card={state.card}
                                 disabled={processing}

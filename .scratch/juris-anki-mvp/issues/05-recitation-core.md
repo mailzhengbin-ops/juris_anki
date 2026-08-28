@@ -20,4 +20,8 @@
 
 ## Comments
 
+- 2026-08-28 设计文档更新：三色评价从卡片反面独立为“用户评价模块”（readme 卡片展示模块/用户评价模块）。已按“翻面后才可评价 + 评价区固定屏幕底部（移动端底部 tab 上方）”重构 recite 页：ReciteSession 承载翻面状态与快捷键（空格翻面；1/2/3/U 仅翻面后生效），RatingBar 独立组件，撤销随评价模块；卡片反面只留路径/在册标签与答案。
+
+## Comments
+
 - 2026-08-28 实施完成：RecitationService（state/rate/undo 全部由评价记录实时推导：任务自动开新、树序下一张、惰性完成判定、撤销重开完成态、范围实时语义）；ReciteController（show/rate/undo，源=当前背诵源，错题本 phase=unavailable 待工单 06）；背诵页 UI（源切换 tab 回跳 recite、进度条、卡片翻转、三色评价自动前进、撤销、键盘 空格/1/2/3/U、完成页三色统计+再背一轮+返回选卡、评价历史累计+相对时间）；答案 markdown 渲染（react-markdown+remark-gfm，已批准依赖，.markdown-body 样式入 app.css）；setActiveSource 支持 redirect=recite。RecitationTest 15 例覆盖全部边界；全量测试 90 通过。
