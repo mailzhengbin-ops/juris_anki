@@ -17,3 +17,7 @@
 - [ ] 卡片正反面显示卡组树路径；答案按 markdown 渲染
 - [ ] 中途取消勾选已评价卡：分子分母同减；重新勾选本任务内不再出现
 - [ ] feature 测试覆盖以上全部边界
+
+## Comments
+
+- 2026-08-28 实施完成：RecitationService（state/rate/undo 全部由评价记录实时推导：任务自动开新、树序下一张、惰性完成判定、撤销重开完成态、范围实时语义）；ReciteController（show/rate/undo，源=当前背诵源，错题本 phase=unavailable 待工单 06）；背诵页 UI（源切换 tab 回跳 recite、进度条、卡片翻转、三色评价自动前进、撤销、键盘 空格/1/2/3/U、完成页三色统计+再背一轮+返回选卡、评价历史累计+相对时间）；答案 markdown 渲染（react-markdown+remark-gfm，已批准依赖，.markdown-body 样式入 app.css）；setActiveSource 支持 redirect=recite。RecitationTest 15 例覆盖全部边界；全量测试 90 通过。

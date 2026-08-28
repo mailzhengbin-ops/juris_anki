@@ -58,7 +58,7 @@ class SelectController extends Controller
     }
 
     /**
-     * 设置当前背诵源（点击源 tab 即生效）。
+     * 设置当前背诵源（点击源 tab 即生效）；redirect 参数决定回跳页面。
      */
     public function setActiveSource(Request $request): RedirectResponse
     {
@@ -73,7 +73,7 @@ class SelectController extends Controller
             'message' => SourceType::from($source)->label(),
         ]);
 
-        return to_route('select');
+        return to_route($request->input('redirect', 'select') === 'recite' ? 'recite' : 'select');
     }
 
     /**

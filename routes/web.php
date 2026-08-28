@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DeckController;
+use App\Http\Controllers\ReciteController;
 use App\Http\Controllers\ScopeController;
 use App\Http\Controllers\SelectController;
 use Illuminate\Support\Facades\Route;
@@ -14,7 +15,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::inertia('recite', 'recite/index')->name('recite');
+    Route::get('recite', [ReciteController::class, 'show'])->name('recite');
+    Route::post('recite/rate', [ReciteController::class, 'rate'])->name('recite.rate');
+    Route::post('recite/undo', [ReciteController::class, 'undo'])->name('recite.undo');
 
     Route::get('select', [SelectController::class, 'index'])->name('select');
     Route::post('select/deck', [SelectController::class, 'setSelectedDeck'])->name('select.deck');
