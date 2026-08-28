@@ -129,10 +129,10 @@ function ReciteCard({
             tabIndex={0}
             aria-label={flipped ? '翻回正面' : '翻面查看答案'}
         >
-            {/* 正面：问题 */}
+            {/* 正面：问题（h-fit 避免被长答案的背面拉伸） */}
             <div
                 className={cn(
-                    'col-start-1 row-start-1 flex flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
+                    'col-start-1 row-start-1 flex h-fit flex-col gap-4 rounded-xl border bg-card p-6 transition-opacity',
                     flipped && 'pointer-events-none opacity-0',
                 )}
             >
