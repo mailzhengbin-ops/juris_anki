@@ -51,7 +51,7 @@ export default function UserLayout({ children }: PropsWithChildren) {
                             <DropdownMenuTrigger asChild>
                                 <button
                                     type="button"
-                                    className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex items-center gap-2 rounded-full px-2 py-1 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label="用户菜单"
                                 >
                                     <UserInfo
