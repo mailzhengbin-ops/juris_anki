@@ -57,4 +57,12 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
+
+    /**
+     * 管理员用户。
+     */
+    public function admin(): static
+    {
+        return $this->state(fn () => ['is_admin' => true]);
+    }
 }
