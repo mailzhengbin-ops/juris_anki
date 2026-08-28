@@ -27,9 +27,11 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
-import { dashboard as adminDashboard } from '@/routes/admin';
-import adminDecks from '@/routes/admin/decks';
-import adminUsers from '@/routes/admin/users';
+import {
+    dashboard as adminDashboard,
+    decks as adminDecks,
+    users as adminUsers,
+} from '@/routes/admin';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
