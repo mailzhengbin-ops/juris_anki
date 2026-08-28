@@ -5,15 +5,15 @@ import Heading from '@/components/heading';
 export default function Appearance() {
     return (
         <>
-            <Head title="Appearance settings" />
+            <Head title="外观设置" />
 
-            <h1 className="sr-only">Appearance settings</h1>
+            <h1 className="sr-only">外观设置</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
                     title="Appearance settings"
-                    description="Update the appearance settings for your account"
+                    description="调整界面的明暗外观"
                 />
                 <AppearanceTabs />
             </div>
