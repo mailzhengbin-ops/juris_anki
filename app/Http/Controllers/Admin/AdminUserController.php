@@ -31,6 +31,7 @@ class AdminUserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'is_admin' => $user->is_admin,
+                'avatar_url' => $user->avatar_url,
                 'last_login_at' => $user->last_login_at?->toIso8601String(),
                 'created_at' => $user->created_at?->toIso8601String(),
             ]),

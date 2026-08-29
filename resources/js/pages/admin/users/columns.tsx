@@ -1,22 +1,25 @@
+import { Link } from '@inertiajs/react';
 import {
     ArrowsDownUpIcon,
     CaretDownIcon,
     CaretUpIcon,
 } from '@phosphor-icons/react';
-import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import type {
     DataTableColumn,
     DataTableColumns,
 } from '@/components/data-table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { getInitials } from '@/hooks/use-initials';
 
 export type UserSummary = {
     id: number;
     name: string;
     email: string;
     is_admin: boolean;
+    avatar_url: string | null;
     last_login_at: string | null;
     created_at: string | null;
 };
@@ -59,6 +62,23 @@ function SortableHeader({
 }
 
 export const columns: DataTableColumns<UserSummary> = [
+    {
+        id: 'avatar',
+        header: '头像',
+        cell: ({ row }) => (
+            <Avatar className="size-8">
+                {row.original.avatar_url && (
+                    <AvatarImage
+                        src={row.original.avatar_url}
+                        alt={row.original.name}
+                    />
+                )}
+                <AvatarFallback className="text-xs">
+                    {getInitials(row.original.name)}
+                </AvatarFallback>
+            </Avatar>
+        ),
+    },
     {
         accessorKey: 'name',
         header: ({ column }) => (

@@ -5,14 +5,17 @@ namespace App\Models;
 use App\Enums\SourceType;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Append;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -24,6 +27,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property bool $is_admin
  * @property int|null $selected_deck_id
  * @property SourceType|null $active_source
+ * @property string|null $avatar
+ * @property string|null $avatar_url
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -34,8 +39,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'selected_deck_id', 'active_source'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Fillable(['name', 'email', 'password', 'selected_deck_id', 'active_source', 'avatar'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'avatar'])]
+#[Append('avatar_url')]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -56,6 +62,16 @@ class User extends Authenticatable implements PasskeyUser
             'is_admin' => 'boolean',
             'active_source' => SourceType::class,
         ];
+    }
+
+    /**
+     * The public URL of the user's avatar, or null when none is set.
+     */
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->avatar !== null ? Storage::url($this->avatar) : null,
+        );
     }
 
     /** @return BelongsTo<Deck, $this> */
