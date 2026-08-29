@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Enums\Rating;
 use App\Enums\SourceType;
 use App\Models\Card;
-use App\Models\Evaluation;
 use App\Models\Section;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,6 +18,8 @@ use Illuminate\Support\Collection;
  */
 class ScopeService
 {
+    public function __construct(private readonly MistakeBookService $mistakeBook) {}
+
     /**
      * 某背诵源的范围卡片 ID（卡组树顺序）。
      *
@@ -65,19 +66,11 @@ class ScopeService
      */
     public function mistakeMembership(User $user): array
     {
-        $latestPerCard = Evaluation::where('user_id', $user->id)
-            ->whereNotNull('card_id')
-            ->selectRaw('MAX(id) as id')
-            ->groupBy('card_id')
-            ->pluck('id');
-
-        $latest = Evaluation::whereIn('id', $latestPerCard)
-            ->get()
-            ->filter(fn (Evaluation $evaluation) => $evaluation->rating->enrollsInMistakeBook());
+        $enrolled = $this->mistakeBook->enrolledRatings($user);
 
         return [
-            'forgotten' => $this->inTreeOrder($latest->where('rating', Rating::Forgotten)->pluck('card_id')),
-            'fuzzy' => $this->inTreeOrder($latest->where('rating', Rating::Fuzzy)->pluck('card_id')),
+            'forgotten' => $this->inTreeOrder($enrolled->filter(fn (Rating $rating) => $rating === Rating::Forgotten)->keys()),
+            'fuzzy' => $this->inTreeOrder($enrolled->filter(fn (Rating $rating) => $rating === Rating::Fuzzy)->keys()),
         ];
     }
 

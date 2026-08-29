@@ -18,7 +18,10 @@ use Illuminate\Validation\ValidationException;
  */
 class RecitationService
 {
-    public function __construct(private readonly ScopeService $scope) {}
+    public function __construct(
+        private readonly ScopeService $scope,
+        private readonly MistakeBookService $mistakeBook,
+    ) {}
 
     /**
      * 计算背诵页状态（评价驱动，纯翻看不推进）。无副作用。
@@ -73,7 +76,7 @@ class RecitationService
         $state['card'] = $this->cardPayload(
             $user,
             $unevaluatedIds->first(),
-            $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $unevaluatedIds->first()) : null,
+            $source === SourceType::Mistake ? $this->mistakeBook->enrolledRating($user, $unevaluatedIds->first()) : null,
         );
 
         return $state;
@@ -176,21 +179,6 @@ class RecitationService
     }
 
     /**
-     * 某卡片当前的在册评价（不在册返回 null）。
-     */
-    private function enrolledRatingFor(User $user, int $cardId): ?Rating
-    {
-        $latest = Evaluation::where('user_id', $user->id)
-            ->where('card_id', $cardId)
-            ->latest('id')
-            ->first();
-
-        return $latest !== null && $latest->rating->enrollsInMistakeBook()
-            ? $latest->rating
-            : null;
-    }
-
-    /**
      * 当前任务：该源（自选卡按当前所选卡组，错题本为 null）最新一条未完成任务。
      */
     private function currentTask(User $user, SourceType $source, ?int $deckId): ?Task
@@ -229,7 +217,7 @@ class RecitationService
         $state['card'] = $this->cardPayload(
             $user,
             $firstCardId,
-            $source === SourceType::Mistake ? $this->enrolledRatingFor($user, $firstCardId) : null,
+            $source === SourceType::Mistake ? $this->mistakeBook->enrolledRating($user, $firstCardId) : null,
         );
 
         return $state;

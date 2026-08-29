@@ -186,6 +186,39 @@ test('rating known inside the mistake task shrinks its scope immediately', funct
         );
 });
 
+test('the enrolled badge and the mistake book groups derive from the same rule', function () {
+    [$deck, $cards] = createBookDeck(User::factory()->create());
+    $user = $deck->owner;
+    actingAs($user);
+
+    rateCard($user, $cards[0], 'forgotten');
+    rateCard($user, $cards[1], 'fuzzy');
+
+    // 选卡页视图：忘记组 / 模糊组各归其位
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('mistakeScope.0.cards.0.id', $cards[0]->id)
+            ->where('mistakeScope.1.cards.0.id', $cards[1]->id)
+        );
+
+    // 背诵页视图：卡片的在册标记与组别一致
+    $user->update(['active_source' => 'mistake']);
+
+    $this->get(route('recite'))
+        ->assertInertia(fn ($page) => $page
+            ->where('state.card.id', $cards[0]->id)
+            ->where('state.card.enrolled', 'forgotten')
+        );
+
+    rateCard($user, $cards[0], 'forgotten');
+
+    $this->get(route('recite'))
+        ->assertInertia(fn ($page) => $page
+            ->where('state.card.id', $cards[1]->id)
+            ->where('state.card.enrolled', 'fuzzy')
+        );
+});
+
 test('rating known in the selected task removes the card from the mistake queue', function () {
     [$deck, $cards] = createBookDeck(User::factory()->create());
     $user = $deck->owner;
