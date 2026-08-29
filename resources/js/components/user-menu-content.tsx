@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings, ShieldCheck } from 'lucide-react';
+import { Gear, ShieldCheck, SignOut } from '@phosphor-icons/react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -41,7 +41,7 @@ export function UserMenuContent({ user }: Props) {
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <Gear className="mr-2" />
                         我的
                     </Link>
                 </DropdownMenuItem>
@@ -68,7 +68,7 @@ export function UserMenuContent({ user }: Props) {
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
-                    <LogOut className="mr-2" />
+                    <SignOut className="mr-2" />
                     退出登录
                 </Link>
             </DropdownMenuItem>

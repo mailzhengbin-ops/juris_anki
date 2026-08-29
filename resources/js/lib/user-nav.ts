@@ -1,17 +1,11 @@
-import {
-    BarChart3,
-    BookOpenText,
-    ListChecks,
-    UserRound
-    
-} from 'lucide-react';
-import type {LucideIcon} from 'lucide-react';
+import { BookOpenText, ChartBar, ListChecks, UserCircle } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import { recite, select, stats } from '@/routes';
 import { edit as editProfile } from '@/routes/profile';
 import type { NavItem } from '@/types';
 
 export type UserNavItem = NavItem & {
-    icon: LucideIcon;
+    icon: Icon;
     /** 激活匹配的前缀（默认等于 href） */
     matchPrefix?: string;
 };
@@ -21,7 +15,7 @@ export function primaryNavItems(): UserNavItem[] {
     return [
         { title: '背诵', href: recite(), icon: BookOpenText },
         { title: '选卡', href: select(), icon: ListChecks },
-        { title: '统计', href: stats(), icon: BarChart3 },
+        { title: '统计', href: stats(), icon: ChartBar },
     ];
 }
 
@@ -30,7 +24,7 @@ export function profileNavItem(): UserNavItem {
     return {
         title: '我的',
         href: editProfile(),
-        icon: UserRound,
+        icon: UserCircle,
         matchPrefix: '/settings',
     };
 }

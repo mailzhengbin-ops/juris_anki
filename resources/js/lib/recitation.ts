@@ -1,4 +1,4 @@
-import { CheckCircle2, MinusCircle, XCircle } from 'lucide-react';
+import { CheckCircle, MinusCircle, XCircle } from '@phosphor-icons/react';
 
 /**
  * 背诵领域内核（单一来源）：类型契约与展示语义与后端对齐。
@@ -50,14 +50,14 @@ export const RATING_INFO: Record<
         barClass: string;
         /** 按钮底色（含 hover 变体）。 */
         className: string;
-        Icon: typeof CheckCircle2;
+        Icon: typeof CheckCircle;
     }
 > = {
     known: {
         label: '认识',
         barClass: 'bg-green-500',
         className: 'bg-green-500 hover:bg-green-600',
-        Icon: CheckCircle2,
+        Icon: CheckCircle,
     },
     fuzzy: {
         label: '模糊',

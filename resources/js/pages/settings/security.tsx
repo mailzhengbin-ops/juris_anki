@@ -58,7 +58,9 @@ export default function Security(props: Props) {
                     {({ errors, processing }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="current_password">当前密码</Label>
+                                <Label htmlFor="current_password">
+                                    当前密码
+                                </Label>
 
                                 <PasswordInput
                                     id="current_password"
@@ -133,4 +135,3 @@ export default function Security(props: Props) {
         </>
     );
 }
-

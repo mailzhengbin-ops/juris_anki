@@ -16,6 +16,8 @@ type SubmitOptions = {
     error?: string;
     /** 发送前的确认文案；用户取消则不发请求。 */
     confirm?: string;
+    /** 保持地址栏不变（POST 直返渲染时防止浏览器 URL 停留到 POST 路径）。 */
+    preserveUrl?: boolean;
     /** 请求结束后的额外收尾（processing 复位之外）。 */
     onFinish?: () => void;
 };
@@ -43,6 +45,7 @@ export function useAction() {
             method: action.method,
             data,
             preserveScroll: true,
+            preserveUrl: options.preserveUrl,
             onError: (errors) => {
                 toast.error(
                     Object.values(errors)[0] ??

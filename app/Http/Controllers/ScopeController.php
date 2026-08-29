@@ -45,4 +45,29 @@ class ScopeController extends Controller
 
         return to_route('select');
     }
+
+    /**
+     * 整体应用背诵范围（选卡页 Dialog 确认提交）：card_ids 为源内最终勾选的全部卡片。
+     */
+    public function apply(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'source' => ['required', Rule::in(['selected', 'mistake'])],
+            'card_ids' => ['array'],
+            'card_ids.*' => ['required', 'integer'],
+        ]);
+
+        $this->scope->apply(
+            $request->user(),
+            SourceType::from($data['source']),
+            $data['card_ids'],
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => '背诵范围已保存',
+        ]);
+
+        return to_route('select');
+    }
 }

@@ -61,6 +61,35 @@ class ScopeService
     }
 
     /**
+     * 整体应用背诵范围（选卡页 Dialog 确认提交）：范围 = 源内全部卡片 ∩ 勾选集，
+     * 一次调用替换整个源的勾选状态。勾选集必须是源内卡片。
+     *
+     * @param  array<int, int>  $checkedCardIds
+     */
+    public function apply(User $user, SourceType $source, array $checkedCardIds): void
+    {
+        $full = $this->fullCardIds($user, $source);
+        $checked = array_unique($checkedCardIds);
+        $validated = collect($checked)->filter(fn (int $id) => $full->contains($id));
+
+        abort_unless(
+            $validated->count() === count($checked),
+            422,
+            '勾选的卡片不属于当前背诵源',
+        );
+
+        $excluded = $full->diff($validated);
+
+        $user->scopeExclusions()->where('source', $source)->delete();
+
+        if ($excluded->isNotEmpty()) {
+            $user->scopeExclusions()->createMany(
+                $excluded->map(fn (int $cardId) => ['source' => $source, 'card_id' => $cardId])->all(),
+            );
+        }
+    }
+
+    /**
      * 错题本在册成员：最新评价为"忘记"/"模糊"的卡片，按原属卡组树顺序。
      *
      * @return array{forgotten: Collection<int, int>, fuzzy: Collection<int, int>}

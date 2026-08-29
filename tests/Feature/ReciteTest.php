@@ -2,6 +2,14 @@
 
 use App\Models\User;
 
+test('stale full-page GETs to the rate and undo urls are redirected to the recite page', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $this->get('/recite/rate')->assertRedirect(route('recite'));
+    $this->get('/recite/undo')->assertRedirect(route('recite'));
+});
+
 test('guests are redirected to the login page when visiting the recite page', function () {
     $response = $this->get(route('recite'));
 

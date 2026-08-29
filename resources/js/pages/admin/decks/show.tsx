@@ -1,12 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
-    ChevronDown,
-    ChevronRight,
+    CaretDown,
+    CaretRight,
+    FloppyDisk,
     Pencil,
-    Save,
-    Trash2,
+    Trash,
     X,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { useState } from 'react';
 import AdminDeckController from '@/actions/App/Http/Controllers/Admin/AdminDeckController';
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,7 @@ export default function AdminDeckShow() {
                                 )
                             }
                         >
-                            <Save />
+                            <FloppyDisk />
                             保存名称
                         </Button>
                         <Button
@@ -124,7 +124,7 @@ export default function AdminDeckShow() {
                                 )
                             }
                         >
-                            <Trash2 />
+                            <Trash />
                             删除卡组
                         </Button>
                     </div>
@@ -150,7 +150,7 @@ export default function AdminDeckShow() {
                                         })
                                     }
                                 >
-                                    <ChevronDown className="size-4" />
+                                    <CaretDown className="size-4" />
                                 </Button>
                                 {editingSection === section.id ? (
                                     <>
@@ -188,7 +188,7 @@ export default function AdminDeckShow() {
                                                 setEditingSection(null);
                                             }}
                                         >
-                                            <Save />
+                                            <FloppyDisk />
                                             保存
                                         </Button>
                                         <Button
@@ -240,7 +240,7 @@ export default function AdminDeckShow() {
                                                 )
                                             }
                                         >
-                                            <Trash2 />
+                                            <Trash />
                                             删除
                                         </Button>
                                     </>
@@ -271,7 +271,7 @@ export default function AdminDeckShow() {
                                                         toggleCard(card.id)
                                                     }
                                                 >
-                                                    <ChevronRight
+                                                    <CaretRight
                                                         className={cn(
                                                             'size-4 shrink-0 transition-transform',
                                                             isExpanded &&
@@ -322,7 +322,7 @@ export default function AdminDeckShow() {
                                                         )
                                                     }
                                                 >
-                                                    <Trash2 />
+                                                    <Trash />
                                                 </Button>
                                             </div>
 
@@ -409,7 +409,7 @@ export default function AdminDeckShow() {
                                                                         );
                                                                     }}
                                                                 >
-                                                                    <Save />
+                                                                    <FloppyDisk />
                                                                     保存
                                                                 </Button>
                                                                 <Button

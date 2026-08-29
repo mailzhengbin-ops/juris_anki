@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { BookOpenText } from 'lucide-react';
+import { BookOpenText } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { login } from '@/routes';
 import { register } from '@/routes';

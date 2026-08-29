@@ -62,12 +62,18 @@ final class MarkdownDeckParser
                     self::fail($lineNumber, '上一张卡片缺少答案围栏');
                 }
 
+                $question = trim(substr($line, 3));
+
+                if ($question === '') {
+                    self::fail($lineNumber, '卡片问题不允许为空');
+                }
+
                 if (++$cardCount > self::MAX_CARDS) {
                     self::fail($lineNumber, sprintf('卡片数量超过上限（%d 张）', self::MAX_CARDS));
                 }
 
                 $currentSection['cards'][] = [
-                    'question' => trim(substr($line, 3)),
+                    'question' => $question,
                     'answer' => null,
                 ];
                 $currentCard = $currentSection['cards'][count($currentSection['cards']) - 1];
@@ -86,7 +92,13 @@ final class MarkdownDeckParser
                     $sections[] = $currentSection;
                 }
 
-                $currentSection = ['name' => trim(substr($line, 2)), 'cards' => []];
+                $sectionName = trim(substr($line, 2));
+
+                if ($sectionName === '') {
+                    self::fail($lineNumber, '子卡组标题不允许为空');
+                }
+
+                $currentSection = ['name' => $sectionName, 'cards' => []];
                 $currentCard = null;
 
                 continue;
@@ -100,6 +112,10 @@ final class MarkdownDeckParser
                 }
 
                 $deckName = trim(substr($line, 1));
+
+                if ($deckName === '') {
+                    self::fail($lineNumber, '卡组标题不允许为空');
+                }
 
                 continue;
             }

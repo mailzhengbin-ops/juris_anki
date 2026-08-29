@@ -93,6 +93,22 @@ test('an invalid document fails atomically with a line-numbered message', functi
     expect(Deck::count())->toBe(0);
 });
 
+test('a document with an empty title at any level is rejected without creating a deck', function (string $document) {
+    $user = User::factory()->create();
+    actingAs($user);
+
+    $response = $this->post(route('decks.import'), [
+        'document' => UploadedFile::fake()->createWithContent('empty-title.md', $document),
+    ]);
+
+    $response->assertSessionHasErrors('document');
+    expect(Deck::count())->toBe(0);
+})->with([
+    'empty deck title' => "# \n## 总则\n### 问题\n```\n答案\n```\n",
+    'empty section title' => "# 民法\n## \n### 问题\n```\n答案\n```\n",
+    'empty card question' => "# 民法\n## 总则\n### \n```\n答案\n```\n",
+]);
+
 test('an oversized document is rejected', function () {
     $user = User::factory()->create();
     actingAs($user);

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from '@phosphor-icons/react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';

@@ -10,10 +10,9 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import {
     isUserNavItemActive,
     primaryNavItems,
-    profileNavItem
-    
+    profileNavItem,
 } from '@/lib/user-nav';
-import type {UserNavItem} from '@/lib/user-nav';
+import type { UserNavItem } from '@/lib/user-nav';
 import { cn } from '@/lib/utils';
 import type { Auth } from '@/types';
 
@@ -51,7 +50,7 @@ export default function UserLayout({ children }: PropsWithChildren) {
                             <DropdownMenuTrigger asChild>
                                 <button
                                     type="button"
-                                    className="flex items-center gap-2 rounded-full px-2 py-1 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label="用户菜单"
                                 >
                                     <UserInfo
@@ -60,10 +59,7 @@ export default function UserLayout({ children }: PropsWithChildren) {
                                     />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                align="end"
-                                className="w-56"
-                            >
+                            <DropdownMenuContent align="end" className="w-56">
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>

@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { FolderKanban } from 'lucide-react';
+import { Folder } from '@phosphor-icons/react';
 import AdminDeckController from '@/actions/App/Http/Controllers/Admin/AdminDeckController';
 import MarkdownImportButton from '@/components/markdown-import-button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -57,7 +57,7 @@ export default function AdminDecks() {
                                 className="block rounded-lg border p-4 transition-colors hover:bg-accent/50"
                             >
                                 <div className="flex items-center gap-2">
-                                    <FolderKanban className="size-4 text-muted-foreground" />
+                                    <Folder className="size-4 text-muted-foreground" />
                                     <span className="font-medium">
                                         {deck.name}
                                     </span>

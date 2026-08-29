@@ -17,6 +17,9 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('recite', [ReciteController::class, 'show'])->name('recite');
+    // 兜底：旧标签页/地址栏停留的 POST URL 整页刷新时改走背诵页，避免 405
+    Route::get('recite/rate', fn () => redirect()->route('recite'));
+    Route::get('recite/undo', fn () => redirect()->route('recite'));
     Route::post('recite/rate', [ReciteController::class, 'rate'])->name('recite.rate');
     Route::post('recite/undo', [ReciteController::class, 'undo'])->name('recite.undo');
 
@@ -25,6 +28,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('select/source', [SelectController::class, 'setActiveSource'])->name('select.source');
 
     Route::post('scope/toggle', [ScopeController::class, 'toggle'])->name('scope.toggle');
+    Route::post('scope/apply', [ScopeController::class, 'apply'])->name('scope.apply');
 
     Route::post('decks/import', [DeckController::class, 'import'])->name('decks.import');
     Route::delete('decks/{deck}', [DeckController::class, 'destroy'])->name('decks.destroy');

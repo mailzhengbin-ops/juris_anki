@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, LibraryBig, Menu, Users } from 'lucide-react';
+import { Books, List, SquaresFour, Users } from '@phosphor-icons/react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -42,12 +42,12 @@ const mainNavItems: NavItem[] = [
     {
         title: '仪表盘',
         href: adminDashboard(),
-        icon: LayoutDashboard,
+        icon: SquaresFour,
     },
     {
         title: '卡片管理',
         href: adminDecks(),
-        icon: LibraryBig,
+        icon: Books,
     },
     {
         title: '用户管理',
@@ -77,7 +77,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     size="icon"
                                     className="mr-2 h-[34px] w-[34px]"
                                 >
-                                    <Menu className="h-5 w-5" />
+                                    <List className="h-5 w-5" />
                                 </Button>
                             </SheetTrigger>
                             <SheetContent

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { FolderKanban, LayoutDashboard, Users } from 'lucide-react';
+import { Folder, SquaresFour, Users } from '@phosphor-icons/react';
 import AppLogo from '@/components/app-logo';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -36,13 +36,13 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuButton asChild>
                         <Link href={adminDashboard()} prefetch>
-                            <LayoutDashboard />
+                            <SquaresFour />
                             <span>仪表盘</span>
                         </Link>
                     </SidebarMenuButton>
                     <SidebarMenuButton asChild>
                         <Link href={adminDecks()} prefetch>
-                            <FolderKanban />
+                            <Folder />
                             <span>卡片管理</span>
                         </Link>
                     </SidebarMenuButton>

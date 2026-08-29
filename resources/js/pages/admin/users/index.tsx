@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,7 +56,7 @@ export default function AdminUsers() {
                             className="w-56"
                         />
                         <Button variant="outline" onClick={doSearch}>
-                            <Search />
+                            <MagnifyingGlass />
                             搜索
                         </Button>
                     </div>
@@ -67,18 +67,33 @@ export default function AdminUsers() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b text-left text-muted-foreground">
-                                    <th className="px-4 py-3 font-medium">昵称</th>
-                                    <th className="px-4 py-3 font-medium">邮箱</th>
-                                    <th className="px-4 py-3 font-medium">角色</th>
-                                    <th className="px-4 py-3 font-medium">最近登录</th>
-                                    <th className="px-4 py-3 font-medium">注册时间</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        昵称
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        邮箱
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        角色
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        最近登录
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        注册时间
+                                    </th>
                                     <th className="px-4 py-3" />
                                 </tr>
                             </thead>
                             <tbody>
                                 {users.map((user) => (
-                                    <tr key={user.id} className="border-b last:border-0">
-                                        <td className="px-4 py-3">{user.name}</td>
+                                    <tr
+                                        key={user.id}
+                                        className="border-b last:border-0"
+                                    >
+                                        <td className="px-4 py-3">
+                                            {user.name}
+                                        </td>
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {user.email}
                                         </td>

@@ -1,5 +1,5 @@
-import type { LucideIcon } from 'lucide-react';
-import { Monitor, Moon, Sun } from 'lucide-react';
+import type { Icon } from '@phosphor-icons/react';
+import { Monitor, Moon, Sun } from '@phosphor-icons/react';
 import type { HTMLAttributes } from 'react';
 import type { Appearance } from '@/hooks/use-appearance';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -11,7 +11,7 @@ export default function AppearanceToggleTab({
 }: HTMLAttributes<HTMLDivElement>) {
     const { appearance, updateAppearance } = useAppearance();
 
-    const tabs: { value: Appearance; icon: LucideIcon; label: string }[] = [
+    const tabs: { value: Appearance; icon: Icon; label: string }[] = [
         { value: 'light', icon: Sun, label: '浅色' },
         { value: 'dark', icon: Moon, label: '深色' },
         { value: 'system', icon: Monitor, label: '跟随系统' },

@@ -234,12 +234,16 @@ export default function Recite() {
         submit(
             ReciteController.rate(),
             { card_id: state.card.id, rating },
-            { error: '评价失败，请重试' },
+            { error: '评价失败，请重试', preserveUrl: true },
         );
     }
 
     function undo() {
-        submit(ReciteController.undo(), {}, { error: '撤销失败，请重试' });
+        submit(
+            ReciteController.undo(),
+            {},
+            { error: '撤销失败，请重试', preserveUrl: true },
+        );
     }
 
     const percent = progressPercent(state.progress);

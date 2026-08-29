@@ -48,7 +48,9 @@ export default function Login() {
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            toast.info('密码重置暂未开通，敬请期待')
+                                            toast.info(
+                                                '密码重置暂未开通，敬请期待',
+                                            )
                                         }
                                         className="ml-auto text-sm text-muted-foreground underline-offset-4 hover:underline"
                                         tabIndex={5}
@@ -97,7 +99,6 @@ export default function Login() {
                     </>
                 )}
             </Form>
-
         </>
     );
 }
