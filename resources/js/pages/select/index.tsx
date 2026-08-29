@@ -1,7 +1,6 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Check, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { toast } from 'sonner';
 import DeckController from '@/actions/App/Http/Controllers/DeckController';
 import ScopeController from '@/actions/App/Http/Controllers/ScopeController';
 import SelectController from '@/actions/App/Http/Controllers/SelectController';
@@ -10,6 +9,7 @@ import type { SourceTab } from '@/components/source-tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAction } from '@/hooks/use-action';
 import { cn } from '@/lib/utils';
 
 type DeckSummary = {
@@ -61,10 +61,10 @@ export default function Select() {
     } = usePage<PageProps>().props;
     const [tab, setTab] = useState<Tab>('system');
     const [detail, setDetail] = useState<DeckSummary | null>(null);
-    const [processing, setProcessing] = useState(false);
-    const [importing, setImporting] = useState(false);
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { processing, submit } = useAction();
+    const { processing: importing, submit: submitImport } = useAction();
 
     const decks =
         tab === 'system' ? warehouse.systemDecks : warehouse.userDecks;
@@ -99,27 +99,18 @@ export default function Select() {
         id: number | string | undefined,
         checked: boolean,
     ) {
-        router.post(
-            ScopeController.toggle.url(),
+        submit(
+            ScopeController.toggle(),
             { source, type, id, checked },
-            {
-                preserveScroll: true,
-                onError: () => toast.error('操作失败，请重试'),
-            },
+            { error: '操作失败，请重试' },
         );
     }
 
     function setAsSelected(deck: DeckSummary) {
-        setProcessing(true);
-
-        router.post(
-            SelectController.setSelectedDeck.url(),
+        submit(
+            SelectController.setSelectedDeck(),
             { deck_id: deck.id },
-            {
-                preserveScroll: true,
-                onError: () => toast.error('设置失败，请稍后重试'),
-                onFinish: () => setProcessing(false),
-            },
+            { error: '设置失败，请稍后重试' },
         );
     }
 
@@ -127,17 +118,9 @@ export default function Select() {
         const formData = new FormData();
         formData.append('document', file);
 
-        setImporting(true);
-        router.post(DeckController.import.url(), formData, {
-            preserveScroll: true,
-            onError: (importErrors) => {
-                toast.error(
-                    importErrors.document ?? '导入失败，请检查文档格式',
-                );
-            },
+        submitImport(DeckController.import(), formData, {
+            error: '导入失败，请检查文档格式',
             onFinish: () => {
-                setImporting(false);
-
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -146,16 +129,8 @@ export default function Select() {
     }
 
     function deleteDeck(deck: DeckSummary) {
-        if (
-            !window.confirm(`确定删除卡组「${deck.name}」吗？删除后不可恢复。`)
-        ) {
-            return;
-        }
-
-        setProcessing(true);
-        router.delete(DeckController.destroy.url({ deck: deck.id }), {
-            preserveScroll: true,
-            onFinish: () => setProcessing(false),
+        submit(DeckController.destroy({ deck: deck.id }), undefined, {
+            confirm: `确定删除卡组「${deck.name}」吗？删除后不可恢复。`,
         });
     }
 

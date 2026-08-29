@@ -1,12 +1,12 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { CheckCircle2, MinusCircle, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import ReciteController from '@/actions/App/Http/Controllers/ReciteController';
 import MarkdownContent from '@/components/markdown-content';
 import SourceTabs from '@/components/source-tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useAction } from '@/hooks/use-action';
 import { cn } from '@/lib/utils';
 import { recite, select } from '@/routes';
 
@@ -293,36 +293,22 @@ function ReciteSession({
 
 export default function Recite() {
     const { state } = usePage<PageProps>().props;
-    const [processing, setProcessing] = useState(false);
+    const { processing, submit } = useAction();
 
     function rate(rating: Rating) {
         if (!state.card) {
             return;
         }
 
-        setProcessing(true);
-        router.post(
-            ReciteController.rate.url(),
+        submit(
+            ReciteController.rate(),
             { card_id: state.card.id, rating },
-            {
-                preserveScroll: true,
-                onError: () => toast.error('评价失败，请重试'),
-                onFinish: () => setProcessing(false),
-            },
+            { error: '评价失败，请重试' },
         );
     }
 
     function undo() {
-        setProcessing(true);
-        router.post(
-            ReciteController.undo.url(),
-            {},
-            {
-                preserveScroll: true,
-                onError: () => toast.error('撤销失败，请重试'),
-                onFinish: () => setProcessing(false),
-            },
-        );
+        submit(ReciteController.undo(), {}, { error: '撤销失败，请重试' });
     }
 
     const percent =

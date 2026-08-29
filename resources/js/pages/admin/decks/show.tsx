@@ -1,12 +1,20 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronRight, Pencil, Save, Trash2, X } from 'lucide-react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import {
+    ChevronDown,
+    ChevronRight,
+    Pencil,
+    Save,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import AdminDeckController from '@/actions/App/Http/Controllers/Admin/AdminDeckController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { ActionRoute } from '@/hooks/use-action';
+import { useAction } from '@/hooks/use-action';
 import { cn } from '@/lib/utils';
 
 type CardItem = {
@@ -31,48 +39,26 @@ type PageProps = {
     deck: DeckDetail;
 };
 
-function useDeckActions() {
-    const [processing, setProcessing] = useState(false);
-
-    function run(exec: () => void) {
-        setProcessing(true);
-        exec();
-    }
-
-    return { processing, run };
-}
-
 export default function AdminDeckShow() {
     const { deck } = usePage<PageProps>().props;
     const [deckName, setDeckName] = useState(deck.name);
     const [editingSection, setEditingSection] = useState<number | null>(null);
-    const [sectionNames, setSectionNames] = useState<Record<number, string>>({});
+    const [sectionNames, setSectionNames] = useState<Record<number, string>>(
+        {},
+    );
     const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
     const [editingCard, setEditingCard] = useState<number | null>(null);
-    const [cardForms, setCardForms] = useState<Record<number, { question: string; answer: string }>>({});
-    const { processing, run } = useDeckActions();
+    const [cardForms, setCardForms] = useState<
+        Record<number, { question: string; answer: string }>
+    >({});
+    const { processing, submit } = useAction();
 
-    function patch(url: string, data: Record<string, string>, message: string) {
-        run(() =>
-            router.patch(url, data, {
-                preserveScroll: true,
-                onError: (errors) => toast.error(Object.values(errors)[0] ?? '保存失败'),
-                onSuccess: () => toast.success(message),
-            }),
-        );
+    function patch(action: ActionRoute, data: Record<string, string>) {
+        submit(action, data, { error: '保存失败' });
     }
 
-    function remove(url: string, message: string, confirmText: string) {
-        if (!window.confirm(confirmText)) {
-            return;
-        }
-
-        run(() =>
-            router.delete(url, {
-                preserveScroll: true,
-                onSuccess: () => toast.success(message),
-            }),
-        );
+    function remove(action: ActionRoute, confirmText: string) {
+        submit(action, undefined, { confirm: confirmText });
     }
 
     function toggleCard(cardId: number) {
@@ -115,9 +101,10 @@ export default function AdminDeckShow() {
                             disabled={processing || deckName === deck.name}
                             onClick={() =>
                                 patch(
-                                    AdminDeckController.update.url({ deck: deck.id }),
+                                    AdminDeckController.update({
+                                        deck: deck.id,
+                                    }),
                                     { name: deckName },
-                                    '卡组名已更新',
                                 )
                             }
                         >
@@ -130,8 +117,9 @@ export default function AdminDeckShow() {
                             disabled={processing}
                             onClick={() =>
                                 remove(
-                                    AdminDeckController.destroy.url({ deck: deck.id }),
-                                    '系统卡组已删除',
+                                    AdminDeckController.destroy({
+                                        deck: deck.id,
+                                    }),
                                     `确定删除系统卡组「${deck.name}」吗？其子卡组与卡片将被删除，用户的评价记录将保留用于统计。`,
                                 )
                             }
@@ -154,7 +142,9 @@ export default function AdminDeckShow() {
                                         setExpandedCards((prev) => {
                                             const next = new Set(prev);
 
-                                            section.cards.forEach((card) => next.add(card.id));
+                                            section.cards.forEach((card) =>
+                                                next.add(card.id),
+                                            );
 
                                             return next;
                                         })
@@ -166,11 +156,15 @@ export default function AdminDeckShow() {
                                     <>
                                         <Input
                                             autoFocus
-                                            value={sectionNames[section.id] ?? section.name}
+                                            value={
+                                                sectionNames[section.id] ??
+                                                section.name
+                                            }
                                             onChange={(e) =>
                                                 setSectionNames((prev) => ({
                                                     ...prev,
-                                                    [section.id]: e.target.value,
+                                                    [section.id]:
+                                                        e.target.value,
                                                 }))
                                             }
                                             className="w-48"
@@ -180,11 +174,16 @@ export default function AdminDeckShow() {
                                             disabled={processing}
                                             onClick={() => {
                                                 patch(
-                                                    AdminDeckController.updateSection.url({
-                                                        section: section.id,
-                                                    }),
-                                                    { name: sectionNames[section.id] },
-                                                    '子卡组名已更新',
+                                                    AdminDeckController.updateSection(
+                                                        {
+                                                            section: section.id,
+                                                        },
+                                                    ),
+                                                    {
+                                                        name: sectionNames[
+                                                            section.id
+                                                        ],
+                                                    },
                                                 );
                                                 setEditingSection(null);
                                             }}
@@ -195,7 +194,9 @@ export default function AdminDeckShow() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => setEditingSection(null)}
+                                            onClick={() =>
+                                                setEditingSection(null)
+                                            }
                                         >
                                             <X />
                                         </Button>
@@ -230,10 +231,11 @@ export default function AdminDeckShow() {
                                             disabled={processing}
                                             onClick={() =>
                                                 remove(
-                                                    AdminDeckController.destroySection.url({
-                                                        section: section.id,
-                                                    }),
-                                                    '子卡组已删除',
+                                                    AdminDeckController.destroySection(
+                                                        {
+                                                            section: section.id,
+                                                        },
+                                                    ),
                                                     `确定删除子卡组「${section.name}」吗？其下 ${section.cards.length} 张卡片将一并删除。`,
                                                 )
                                             }
@@ -247,7 +249,9 @@ export default function AdminDeckShow() {
 
                             <div className="space-y-1 border-t pt-2">
                                 {section.cards.map((card) => {
-                                    const isExpanded = expandedCards.has(card.id);
+                                    const isExpanded = expandedCards.has(
+                                        card.id,
+                                    );
                                     const isEditing = editingCard === card.id;
                                     const form = cardForms[card.id] ?? {
                                         question: card.question,
@@ -255,17 +259,23 @@ export default function AdminDeckShow() {
                                     };
 
                                     return (
-                                        <div key={card.id} className="rounded-md border px-3">
+                                        <div
+                                            key={card.id}
+                                            className="rounded-md border px-3"
+                                        >
                                             <div className="flex items-center gap-2 py-2">
                                                 <button
                                                     type="button"
                                                     className="flex flex-1 items-center gap-2 text-left text-sm"
-                                                    onClick={() => toggleCard(card.id)}
+                                                    onClick={() =>
+                                                        toggleCard(card.id)
+                                                    }
                                                 >
                                                     <ChevronRight
                                                         className={cn(
                                                             'size-4 shrink-0 transition-transform',
-                                                            isExpanded && 'rotate-90',
+                                                            isExpanded &&
+                                                                'rotate-90',
                                                         )}
                                                     />
                                                     <span className="truncate">
@@ -277,14 +287,19 @@ export default function AdminDeckShow() {
                                                         size="sm"
                                                         variant="ghost"
                                                         onClick={() => {
-                                                            setCardForms((prev) => ({
-                                                                ...prev,
-                                                                [card.id]: {
-                                                                    question: card.question,
-                                                                    answer: card.answer,
-                                                                },
-                                                            }));
-                                                            setEditingCard(card.id);
+                                                            setCardForms(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [card.id]: {
+                                                                        question:
+                                                                            card.question,
+                                                                        answer: card.answer,
+                                                                    },
+                                                                }),
+                                                            );
+                                                            setEditingCard(
+                                                                card.id,
+                                                            );
                                                         }}
                                                     >
                                                         <Pencil />
@@ -298,10 +313,11 @@ export default function AdminDeckShow() {
                                                     disabled={processing}
                                                     onClick={() =>
                                                         remove(
-                                                            AdminDeckController.destroyCard.url({
-                                                                card: card.id,
-                                                            }),
-                                                            '卡片已删除',
+                                                            AdminDeckController.destroyCard(
+                                                                {
+                                                                    card: card.id,
+                                                                },
+                                                            ),
                                                             '确定删除该卡片吗？它将从所有用户的范围与错题本中消失，评价记录保留用于统计。',
                                                         )
                                                     }
@@ -315,34 +331,59 @@ export default function AdminDeckShow() {
                                                     {isEditing ? (
                                                         <>
                                                             <div className="grid gap-2">
-                                                                <Label>问题</Label>
+                                                                <Label>
+                                                                    问题
+                                                                </Label>
                                                                 <Input
-                                                                    value={form.question}
-                                                                    onChange={(e) =>
-                                                                        setCardForms((prev) => ({
-                                                                            ...prev,
-                                                                            [card.id]: {
-                                                                                ...form,
-                                                                                question:
-                                                                                    e.target.value,
-                                                                            },
-                                                                        }))
+                                                                    value={
+                                                                        form.question
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        setCardForms(
+                                                                            (
+                                                                                prev,
+                                                                            ) => ({
+                                                                                ...prev,
+                                                                                [card.id]:
+                                                                                    {
+                                                                                        ...form,
+                                                                                        question:
+                                                                                            e
+                                                                                                .target
+                                                                                                .value,
+                                                                                    },
+                                                                            }),
+                                                                        )
                                                                     }
                                                                 />
                                                             </div>
                                                             <div className="grid gap-2">
-                                                                <Label>答案</Label>
+                                                                <Label>
+                                                                    答案
+                                                                </Label>
                                                                 <textarea
-                                                                    value={form.answer}
-                                                                    onChange={(e) =>
-                                                                        setCardForms((prev) => ({
-                                                                            ...prev,
-                                                                            [card.id]: {
-                                                                                ...form,
-                                                                                answer:
-                                                                                    e.target.value,
-                                                                            },
-                                                                        }))
+                                                                    value={
+                                                                        form.answer
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        setCardForms(
+                                                                            (
+                                                                                prev,
+                                                                            ) => ({
+                                                                                ...prev,
+                                                                                [card.id]:
+                                                                                    {
+                                                                                        ...form,
+                                                                                        answer: e
+                                                                                            .target
+                                                                                            .value,
+                                                                                    },
+                                                                            }),
+                                                                        )
                                                                     }
                                                                     rows={4}
                                                                     className="w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -351,16 +392,21 @@ export default function AdminDeckShow() {
                                                             <div className="flex gap-2">
                                                                 <Button
                                                                     size="sm"
-                                                                    disabled={processing}
+                                                                    disabled={
+                                                                        processing
+                                                                    }
                                                                     onClick={() => {
                                                                         patch(
-                                                                            AdminDeckController.updateCard.url({
-                                                                                card: card.id,
-                                                                            }),
+                                                                            AdminDeckController.updateCard(
+                                                                                {
+                                                                                    card: card.id,
+                                                                                },
+                                                                            ),
                                                                             form,
-                                                                            '卡片已更新',
                                                                         );
-                                                                        setEditingCard(null);
+                                                                        setEditingCard(
+                                                                            null,
+                                                                        );
                                                                     }}
                                                                 >
                                                                     <Save />
@@ -370,7 +416,9 @@ export default function AdminDeckShow() {
                                                                     size="sm"
                                                                     variant="ghost"
                                                                     onClick={() =>
-                                                                        setEditingCard(null)
+                                                                        setEditingCard(
+                                                                            null,
+                                                                        )
                                                                     }
                                                                 >
                                                                     <X />
@@ -380,7 +428,10 @@ export default function AdminDeckShow() {
                                                         </>
                                                     ) : (
                                                         <div className="space-y-1 text-muted-foreground">
-                                                            <p>答：{card.answer}</p>
+                                                            <p>
+                                                                答：
+                                                                {card.answer}
+                                                            </p>
                                                         </div>
                                                     )}
                                                 </div>

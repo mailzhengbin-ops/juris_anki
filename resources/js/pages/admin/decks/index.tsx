@@ -1,10 +1,10 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { FolderKanban, Plus } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { useRef } from 'react';
 import AdminDeckController from '@/actions/App/Http/Controllers/Admin/AdminDeckController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useAction } from '@/hooks/use-action';
 
 type DeckSummary = {
     id: number;
@@ -20,22 +20,16 @@ type PageProps = {
 
 export default function AdminDecks() {
     const { decks, errors } = usePage<PageProps>().props;
-    const [importing, setImporting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { processing: importing, submit: submitImport } = useAction();
 
     function importDocument(file: File) {
         const formData = new FormData();
         formData.append('document', file);
 
-        setImporting(true);
-        router.post(AdminDeckController.import.url(), formData, {
-            preserveScroll: true,
-            onError: (importErrors) => {
-                toast.error(importErrors.document ?? '导入失败，请检查文档格式');
-            },
+        submitImport(AdminDeckController.import(), formData, {
+            error: '导入失败，请检查文档格式',
             onFinish: () => {
-                setImporting(false);
-
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -79,7 +73,9 @@ export default function AdminDecks() {
                 </div>
 
                 {errors.document && (
-                    <p className="text-sm text-destructive">{errors.document}</p>
+                    <p className="text-sm text-destructive">
+                        {errors.document}
+                    </p>
                 )}
 
                 {decks.length === 0 ? (
@@ -98,7 +94,9 @@ export default function AdminDecks() {
                             >
                                 <div className="flex items-center gap-2">
                                     <FolderKanban className="size-4 text-muted-foreground" />
-                                    <span className="font-medium">{deck.name}</span>
+                                    <span className="font-medium">
+                                        {deck.name}
+                                    </span>
                                 </div>
                                 <p className="mt-1 text-sm text-muted-foreground">
                                     {deck.sections_count} 个子卡组 ·{' '}
