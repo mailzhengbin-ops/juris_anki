@@ -1,10 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { FolderKanban, Plus } from 'lucide-react';
-import { useRef } from 'react';
+import { FolderKanban } from 'lucide-react';
 import AdminDeckController from '@/actions/App/Http/Controllers/Admin/AdminDeckController';
-import { Button } from '@/components/ui/button';
+import MarkdownImportButton from '@/components/markdown-import-button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAction } from '@/hooks/use-action';
 
 type DeckSummary = {
     id: number;
@@ -20,22 +18,6 @@ type PageProps = {
 
 export default function AdminDecks() {
     const { decks, errors } = usePage<PageProps>().props;
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const { processing: importing, submit: submitImport } = useAction();
-
-    function importDocument(file: File) {
-        const formData = new FormData();
-        formData.append('document', file);
-
-        submitImport(AdminDeckController.import(), formData, {
-            error: '导入失败，请检查文档格式',
-            onFinish: () => {
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                }
-            },
-        });
-    }
 
     return (
         <>
@@ -49,26 +31,8 @@ export default function AdminDecks() {
                             通过 markdown 文档导入创建系统卡组
                         </p>
                     </div>
-                    <Button
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={importing}
-                    >
-                        <Plus />
-                        导入 markdown
-                    </Button>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".md,.markdown,text/markdown,text/plain"
-                        className="hidden"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-
-                            if (file) {
-                                importDocument(file);
-                            }
-                        }}
+                    <MarkdownImportButton
+                        action={AdminDeckController.import()}
                     />
                 </div>
 
