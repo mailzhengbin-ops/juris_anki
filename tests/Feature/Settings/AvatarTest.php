@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 
 /** 1×1 透明 PNG（base64），避免依赖未安装的 GD 扩展。 */
 function fakeAvatar(): UploadedFile
@@ -130,4 +131,16 @@ test('avatar removal is a no-op when the user has no avatar', function () {
         ->assertRedirect(route('profile.edit'));
 
     expect($user->refresh()->avatar)->toBeNull();
+});
+
+test('profile page exposes the avatar url to the client', function () {
+    $user = User::factory()->create();
+    $user->fill(['avatar' => 'avatars/avatar.webp'])->save();
+
+    $this
+        ->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('settings/profile')
+            ->where('auth.user.avatar_url', '/storage/avatars/avatar.webp'));
 });
