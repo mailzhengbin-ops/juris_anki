@@ -51,6 +51,7 @@
         "@radix-ui/react-toggle-group": "^1.1.2",
         "@radix-ui/react-tooltip": "^1.1.8",
         "@tailwindcss/vite": "^4.1.11",
+        "@tanstack/react-table": "^9.2.4",
         "@types/react": "^19.2.0",
         "@types/react-dom": "^19.2.0",
         "@vitejs/plugin-react": "^5.2.0",
@@ -83,10 +84,5 @@
         "@tailwindcss/oxide-win32-x64-msvc": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1",
         "lightningcss-win32-x64-msvc": "^1.29.1"
-    },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "unrs-resolver"
-        ]
     }
 }
