@@ -65,8 +65,6 @@ test('unchecking a card records an exclusion that persists', function () {
         'checked' => false,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->where('card_id', $card->id)->exists())->toBeTrue();
-
     $this->get(route('select'))
         ->assertInertia(fn ($page) => $page
             ->where('selectedScope.0.cards.0.checked', false)
@@ -74,7 +72,7 @@ test('unchecking a card records an exclusion that persists', function () {
         );
 });
 
-test('rechecking a card removes the exclusion', function () {
+test('rechecking a card restores its checked state', function () {
     [$deck, $sections] = createDeckWithSections(User::factory()->create());
     $card = $sections[0]->cards()->first();
     ScopeExclusion::create(['user_id' => $deck->user_id, 'source' => 'selected', 'card_id' => $card->id]);
@@ -90,7 +88,11 @@ test('rechecking a card removes the exclusion', function () {
         'checked' => true,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->where('card_id', $card->id)->exists())->toBeFalse();
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedScope.0.cards.0.checked', true)
+            ->where('selectedScope.0.cards.1.checked', true)
+        );
 });
 
 test('unchecking a section excludes all of its cards', function () {
@@ -107,8 +109,13 @@ test('unchecking a section excludes all of its cards', function () {
         'checked' => false,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->count())->toBe(2)
-        ->and($sections[1]->cards()->whereNotIn('id', ScopeExclusion::pluck('card_id'))->count())->toBe(2);
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedScope.0.cards.0.checked', false)
+            ->where('selectedScope.0.cards.1.checked', false)
+            ->where('selectedScope.1.cards.0.checked', true)
+            ->where('selectedScope.1.cards.1.checked', true)
+        );
 });
 
 test('clearing the whole source then selecting all restores every card', function () {
@@ -124,7 +131,13 @@ test('clearing the whole source then selecting all restores every card', functio
         'checked' => false,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->count())->toBe(4);
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedScope.0.cards.0.checked', false)
+            ->where('selectedScope.0.cards.1.checked', false)
+            ->where('selectedScope.1.cards.0.checked', false)
+            ->where('selectedScope.1.cards.1.checked', false)
+        );
 
     $this->post(route('scope.toggle'), [
         'source' => 'selected',
@@ -132,7 +145,11 @@ test('clearing the whole source then selecting all restores every card', functio
         'checked' => true,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->count())->toBe(0);
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('selectedScope.0.cards.0.checked', true)
+            ->where('selectedScope.1.cards.1.checked', true)
+        );
 });
 
 test('toggling requires a selected deck', function () {
@@ -189,7 +206,10 @@ test('the mistake source scope can be toggled and cleared', function () {
         'checked' => false,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->where('card_id', $inBook->id)->exists())->toBeTrue();
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('mistakeScope.0.cards.0.checked', false)
+        );
 
     // 全选恢复
     $this->post(route('scope.toggle'), [
@@ -198,7 +218,10 @@ test('the mistake source scope can be toggled and cleared', function () {
         'checked' => true,
     ])->assertRedirect(route('select'));
 
-    expect(ScopeExclusion::where('user_id', $user->id)->count())->toBe(0);
+    $this->get(route('select'))
+        ->assertInertia(fn ($page) => $page
+            ->where('mistakeScope.0.cards.0.checked', true)
+        );
 });
 
 test('switching decks keeps exclusions per deck', function () {

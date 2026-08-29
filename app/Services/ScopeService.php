@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Rating;
 use App\Enums\SourceType;
 use App\Models\Card;
+use App\Models\Deck;
 use App\Models\Section;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -72,6 +73,96 @@ class ScopeService
             'forgotten' => $this->inTreeOrder($enrolled->filter(fn (Rating $rating) => $rating === Rating::Forgotten)->keys()),
             'fuzzy' => $this->inTreeOrder($enrolled->filter(fn (Rating $rating) => $rating === Rating::Fuzzy)->keys()),
         ];
+    }
+
+    /**
+     * 选卡页范围树（读投影）：自选卡按子卡组分组，错题本按「忘记/模糊」分组；
+     * 卡片带勾选状态（排除推导）与错题本原属路径。
+     *
+     * @return array<int, array{id: int|string, name: string, cards: array<int, array{id: int, question: string, checked: bool, path?: string}>}>
+     */
+    public function tree(User $user, SourceType $source): array
+    {
+        return $source === SourceType::Mistake
+            ? $this->mistakeTree($user)
+            : $this->selectedTree($user);
+    }
+
+    /**
+     * 错题本范围树：忘记/模糊两个子组，卡片按原属卡组树顺序并带路径。
+     *
+     * @return array<int, array{id: string, name: string, cards: array<int, array{id: int, question: string, checked: bool, path: string}>}>
+     */
+    private function mistakeTree(User $user): array
+    {
+        $excluded = $this->excludedCardIds($user, SourceType::Mistake);
+        $membership = $this->mistakeMembership($user);
+
+        return [
+            $this->mistakeGroupPayload(Rating::Forgotten, $membership['forgotten'], $excluded),
+            $this->mistakeGroupPayload(Rating::Fuzzy, $membership['fuzzy'], $excluded),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, int>  $cardIds
+     * @param  Collection<int, int>  $excluded
+     * @return array{id: string, name: string, cards: array<int, array{id: int, question: string, checked: bool, path: string}>}
+     */
+    private function mistakeGroupPayload(Rating $rating, Collection $cardIds, Collection $excluded): array
+    {
+        $cards = Card::query()
+            ->join('sections', 'cards.section_id', '=', 'sections.id')
+            ->join('decks', 'sections.deck_id', '=', 'decks.id')
+            ->whereIn('cards.id', $cardIds)
+            ->orderBy('sections.position')
+            ->orderBy('cards.position')
+            ->get(['cards.id', 'cards.question', 'sections.name as section_name', 'decks.name as deck_name']);
+
+        return [
+            'id' => $rating->value,
+            'name' => $rating->label(),
+            'cards' => $cards
+                ->map(fn (Card $card) => [
+                    'id' => $card->id,
+                    'question' => $card->question,
+                    'path' => "{$card->deck_name} / {$card->section_name}",
+                    'checked' => ! $excluded->contains($card->id),
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
+     * 自选卡范围树：子卡组分组，卡片带勾选状态。
+     *
+     * @return array<int, array{id: int, name: string, cards: array<int, array{id: int, question: string, checked: bool}>}>
+     */
+    private function selectedTree(User $user): array
+    {
+        $deckId = $user->selected_deck_id;
+
+        abort_if($deckId === null, 422, '尚未选择自选卡');
+
+        $excluded = $this->excludedCardIds($user, SourceType::Selected)->flip();
+
+        return Deck::whereKey($deckId)
+            ->firstOrFail()
+            ->sections()
+            ->with('cards')
+            ->get()
+            ->map(fn (Section $section) => [
+                'id' => $section->id,
+                'name' => $section->name,
+                'cards' => $section->cards->map(fn (Card $card) => [
+                    'id' => $card->id,
+                    'question' => $card->question,
+                    'checked' => ! $excluded->has($card->id),
+                ])->values()->all(),
+            ])
+            ->values()
+            ->all();
     }
 
     /**
