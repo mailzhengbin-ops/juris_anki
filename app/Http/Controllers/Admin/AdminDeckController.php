@@ -59,7 +59,6 @@ class AdminDeckController extends Controller
      */
     public function show(Deck $deck): Response
     {
-        $this->assertSystemDeck($deck);
 
         return Inertia::render('admin/decks/show', [
             'deck' => [
@@ -86,11 +85,10 @@ class AdminDeckController extends Controller
      */
     public function update(Request $request, Deck $deck): RedirectResponse
     {
-        $this->assertSystemDeck($deck);
 
         $name = $request->validate(['name' => ['required', 'string', 'max:100']])['name'];
 
-        if (Deck::system()->where('name', $name)->whereKeyNot($deck->id)->exists()) {
+        if (Deck::nameTaken(null, $name, $deck->id)) {
             throw ValidationException::withMessages(['name' => '已存在同名系统卡组']);
         }
 
@@ -106,7 +104,6 @@ class AdminDeckController extends Controller
      */
     public function updateSection(Request $request, Section $section): RedirectResponse
     {
-        $this->assertSystemDeck($section->deck);
 
         $section->update($request->validate(['name' => ['required', 'string', 'max:100']]));
 
@@ -120,7 +117,6 @@ class AdminDeckController extends Controller
      */
     public function updateCard(Request $request, Card $card): RedirectResponse
     {
-        $this->assertSystemDeck($card->section->deck);
 
         $card->update($request->validate([
             'question' => ['required', 'string'],
@@ -137,7 +133,6 @@ class AdminDeckController extends Controller
      */
     public function destroy(Deck $deck): RedirectResponse
     {
-        $this->assertSystemDeck($deck);
 
         $name = $deck->name;
         $deck->delete();
@@ -152,7 +147,6 @@ class AdminDeckController extends Controller
      */
     public function destroySection(Section $section): RedirectResponse
     {
-        $this->assertSystemDeck($section->deck);
 
         $section->delete();
 
@@ -166,17 +160,11 @@ class AdminDeckController extends Controller
      */
     public function destroyCard(Card $card): RedirectResponse
     {
-        $this->assertSystemDeck($card->section->deck);
 
         $card->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => '卡片已删除']);
 
         return to_route('admin.decks.show', $card->section->deck_id);
-    }
-
-    private function assertSystemDeck(?Deck $deck): void
-    {
-        abort_unless($deck !== null && $deck->isSystem(), 403);
     }
 }

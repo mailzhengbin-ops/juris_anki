@@ -30,9 +30,7 @@ class DeckImportService
             throw ValidationException::withMessages(['document' => $e->getMessage()]);
         }
 
-        $duplicate = Deck::where('user_id', $owner?->id)
-            ->where('name', $parsed['name'])
-            ->exists();
+        $duplicate = Deck::nameTaken($owner?->id, $parsed['name']);
 
         if ($duplicate) {
             throw ValidationException::withMessages([

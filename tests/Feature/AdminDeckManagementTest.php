@@ -87,6 +87,17 @@ test('duplicate system deck names are rejected', function () {
         ->assertSessionHasErrors('name');
 });
 
+test('system and user decks may share a name', function () {
+    Deck::factory()->ownedBy(User::factory()->create())->create(['name' => '刑法']);
+    $deck = createSystemDeck('民法');
+    actingAs(deckAdmin());
+
+    $this->patch(route('admin.decks.update', $deck), ['name' => '刑法'])
+        ->assertRedirect();
+
+    expect($deck->fresh()->name)->toBe('刑法');
+});
+
 test('an admin can edit a card without disturbing user-side data', function () {
     $deck = createSystemDeck();
     $section = Section::factory()->create(['deck_id' => $deck->id, 'name' => '绪论', 'position' => 1]);

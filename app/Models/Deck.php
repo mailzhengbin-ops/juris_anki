@@ -65,4 +65,16 @@ class Deck extends Model
     {
         return $this->user_id === null;
     }
+
+    /**
+     * 同一归属（系统 = null / 用户）下是否存在同名卡组（可排除自身）。
+     * 系统卡组改名与 markdown 导入共用的同名唯一规则。
+     */
+    public static function nameTaken(?int $ownerId, string $name, ?int $exceptDeckId = null): bool
+    {
+        return static::where('user_id', $ownerId)
+            ->where('name', $name)
+            ->when($exceptDeckId !== null, fn (Builder $query) => $query->whereKeyNot($exceptDeckId))
+            ->exists();
+    }
 }

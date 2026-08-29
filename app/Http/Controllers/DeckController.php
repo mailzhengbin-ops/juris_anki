@@ -33,17 +33,14 @@ class DeckController extends Controller
     }
 
     /**
-     * 删除自己的用户卡组（级联删除子卡组/卡片/范围勾选，评价记录保留用于统计）。
+     * 删除自己的用户卡组（级联删除子卡组/卡片/范围勾选，评价记录保留用于统计；
+     * 若为当前自选卡，selected_deck_id 由外键 nullOnDelete 自动清空）。
      */
     public function destroy(Request $request, Deck $deck): RedirectResponse
     {
         abort_unless($deck->user_id === $request->user()->id, 403);
 
         $name = $deck->name;
-
-        if ($request->user()->selected_deck_id === $deck->id) {
-            $request->user()->update(['selected_deck_id' => null]);
-        }
 
         $deck->delete();
 
