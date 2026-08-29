@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import DeckController from '@/actions/App/Http/Controllers/DeckController';
 import ScopeController from '@/actions/App/Http/Controllers/ScopeController';
 import SelectController from '@/actions/App/Http/Controllers/SelectController';
+import SourceTabs from '@/components/source-tabs';
+import type { SourceTab } from '@/components/source-tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -47,7 +49,6 @@ type PageProps = {
 };
 
 type Tab = 'system' | 'user';
-type SourceTab = 'selected' | 'mistake';
 
 export default function Select() {
     const {
@@ -65,8 +66,10 @@ export default function Select() {
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const decks = tab === 'system' ? warehouse.systemDecks : warehouse.userDecks;
+    const decks =
+        tab === 'system' ? warehouse.systemDecks : warehouse.userDecks;
     const current = detail ?? decks[0] ?? null;
+    // 跟随 SourceTabs 的乐观切换展示对应源的范围树
     const [sourceTab, setSourceTab] = useState<SourceTab>(
         activeSource ?? 'selected',
     );
@@ -74,18 +77,6 @@ export default function Select() {
     function switchTab(next: Tab) {
         setTab(next);
         setDetail(null);
-    }
-
-    function switchSourceTab(next: SourceTab) {
-        setSourceTab(next);
-
-        if (next !== activeSource) {
-            router.post(
-                SelectController.setActiveSource.url(),
-                { source: next },
-                { preserveScroll: true },
-            );
-        }
     }
 
     function toggleExpanded(sectionId: string) {
@@ -140,7 +131,9 @@ export default function Select() {
         router.post(DeckController.import.url(), formData, {
             preserveScroll: true,
             onError: (importErrors) => {
-                toast.error(importErrors.document ?? '导入失败，请检查文档格式');
+                toast.error(
+                    importErrors.document ?? '导入失败，请检查文档格式',
+                );
             },
             onFinish: () => {
                 setImporting(false);
@@ -153,7 +146,9 @@ export default function Select() {
     }
 
     function deleteDeck(deck: DeckSummary) {
-        if (!window.confirm(`确定删除卡组「${deck.name}」吗？删除后不可恢复。`)) {
+        if (
+            !window.confirm(`确定删除卡组「${deck.name}」吗？删除后不可恢复。`)
+        ) {
             return;
         }
 
@@ -173,33 +168,17 @@ export default function Select() {
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold">当前在背</h2>
-                        <div className="flex gap-2 rounded-lg bg-muted p-1">
-                            {(
-                                [
-                                    { key: 'selected', label: '自选卡' },
-                                    { key: 'mistake', label: '错题本' },
-                                ] as const
-                            ).map(({ key, label }) => (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    onClick={() => switchSourceTab(key)}
-                                    className={cn(
-                                        'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                                        sourceTab === key
-                                            ? 'bg-background text-foreground shadow-sm'
-                                            : 'text-muted-foreground hover:text-foreground',
-                                    )}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
+                        <SourceTabs
+                            source={activeSource}
+                            onSourceChange={setSourceTab}
+                        />
                     </div>
 
                     {(() => {
                         const scopeTree =
-                            sourceTab === 'selected' ? selectedScope : mistakeScope;
+                            sourceTab === 'selected'
+                                ? selectedScope
+                                : mistakeScope;
 
                         if (!scopeTree) {
                             return (
@@ -219,14 +198,28 @@ export default function Select() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => postScope(sourceTab, 'source', undefined, true)}
+                                        onClick={() =>
+                                            postScope(
+                                                sourceTab,
+                                                'source',
+                                                undefined,
+                                                true,
+                                            )
+                                        }
                                     >
                                         全选
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => postScope(sourceTab, 'source', undefined, false)}
+                                        onClick={() =>
+                                            postScope(
+                                                sourceTab,
+                                                'source',
+                                                undefined,
+                                                false,
+                                            )
+                                        }
                                     >
                                         清空
                                     </Button>
@@ -235,14 +228,17 @@ export default function Select() {
                                 <div className="space-y-2">
                                     {scopeTree.map((section) => {
                                         const sectionKey = String(section.id);
-                                        const checkedCount = section.cards.filter(
-                                            (card) => card.checked,
-                                        ).length;
+                                        const checkedCount =
+                                            section.cards.filter(
+                                                (card) => card.checked,
+                                            ).length;
                                         const allChecked =
-                                            checkedCount === section.cards.length;
+                                            checkedCount ===
+                                            section.cards.length;
                                         const partial =
                                             checkedCount > 0 && !allChecked;
-                                        const isExpanded = expanded.has(sectionKey);
+                                        const isExpanded =
+                                            expanded.has(sectionKey);
 
                                         return (
                                             <div
@@ -256,7 +252,9 @@ export default function Select() {
                                                                 ? 'indeterminate'
                                                                 : allChecked
                                                         }
-                                                        onCheckedChange={(value) =>
+                                                        onCheckedChange={(
+                                                            value,
+                                                        ) =>
                                                             postScope(
                                                                 sourceTab,
                                                                 'section',
@@ -269,7 +267,9 @@ export default function Select() {
                                                         type="button"
                                                         className="flex flex-1 items-center gap-2 text-left"
                                                         onClick={() =>
-                                                            toggleExpanded(sectionKey)
+                                                            toggleExpanded(
+                                                                sectionKey,
+                                                            )
                                                         }
                                                     >
                                                         <ChevronRight
@@ -284,39 +284,55 @@ export default function Select() {
                                                         </span>
                                                         <span className="text-sm text-muted-foreground">
                                                             {checkedCount}/
-                                                            {section.cards.length}
+                                                            {
+                                                                section.cards
+                                                                    .length
+                                                            }
                                                         </span>
                                                     </button>
                                                 </div>
 
                                                 {isExpanded && (
                                                     <ul className="space-y-1 border-t px-3 py-2">
-                                                        {section.cards.map((card) => (
-                                                            <li
-                                                                key={card.id}
-                                                                className="flex items-center gap-2 py-1"
-                                                            >
-                                                                <Checkbox
-                                                                    checked={card.checked}
-                                                                    onCheckedChange={(value) =>
-                                                                        postScope(
-                                                                            sourceTab,
-                                                                            'card',
-                                                                            card.id,
-                                                                            value === true,
-                                                                        )
+                                                        {section.cards.map(
+                                                            (card) => (
+                                                                <li
+                                                                    key={
+                                                                        card.id
                                                                     }
-                                                                />
-                                                                <span className="text-sm">
-                                                                    {card.question}
-                                                                </span>
-                                                                {card.path && (
-                                                                    <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                                                                        {card.path}
+                                                                    className="flex items-center gap-2 py-1"
+                                                                >
+                                                                    <Checkbox
+                                                                        checked={
+                                                                            card.checked
+                                                                        }
+                                                                        onCheckedChange={(
+                                                                            value,
+                                                                        ) =>
+                                                                            postScope(
+                                                                                sourceTab,
+                                                                                'card',
+                                                                                card.id,
+                                                                                value ===
+                                                                                    true,
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                    <span className="text-sm">
+                                                                        {
+                                                                            card.question
+                                                                        }
                                                                     </span>
-                                                                )}
-                                                            </li>
-                                                        ))}
+                                                                    {card.path && (
+                                                                        <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                                                                            {
+                                                                                card.path
+                                                                            }
+                                                                        </span>
+                                                                    )}
+                                                                </li>
+                                                            ),
+                                                        )}
                                                     </ul>
                                                 )}
                                             </div>
@@ -363,7 +379,9 @@ export default function Select() {
                                     <Button
                                         variant="outline"
                                         className="w-full"
-                                        onClick={() => fileInputRef.current?.click()}
+                                        onClick={() =>
+                                            fileInputRef.current?.click()
+                                        }
                                         disabled={importing}
                                     >
                                         <Plus />
@@ -455,7 +473,9 @@ export default function Select() {
                                         ) : (
                                             <Button
                                                 className="w-full"
-                                                onClick={() => setAsSelected(current)}
+                                                onClick={() =>
+                                                    setAsSelected(current)
+                                                }
                                                 disabled={processing}
                                             >
                                                 设为自选卡
@@ -466,7 +486,9 @@ export default function Select() {
                                             <Button
                                                 variant="destructive"
                                                 className="w-full"
-                                                onClick={() => deleteDeck(current)}
+                                                onClick={() =>
+                                                    deleteDeck(current)
+                                                }
                                                 disabled={processing}
                                             >
                                                 <Trash2 />

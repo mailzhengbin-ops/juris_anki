@@ -3,8 +3,8 @@ import { CheckCircle2, MinusCircle, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import ReciteController from '@/actions/App/Http/Controllers/ReciteController';
-import SelectController from '@/actions/App/Http/Controllers/SelectController';
 import MarkdownContent from '@/components/markdown-content';
+import SourceTabs from '@/components/source-tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -137,7 +137,7 @@ function ReciteCard({
                 )}
             >
                 <CardHeader card={card} />
-                <h2 className="text-lg font-semibold leading-relaxed">
+                <h2 className="text-lg leading-relaxed font-semibold">
                     {card.question}
                 </h2>
                 <p className="mt-auto text-sm text-muted-foreground">
@@ -294,21 +294,6 @@ function ReciteSession({
 export default function Recite() {
     const { state } = usePage<PageProps>().props;
     const [processing, setProcessing] = useState(false);
-    const [sourceTab, setSourceTab] = useState<'selected' | 'mistake'>(
-        state.source,
-    );
-
-    function switchSource(next: 'selected' | 'mistake') {
-        setSourceTab(next);
-
-        if (next !== state.source) {
-            router.post(
-                SelectController.setActiveSource.url(),
-                { source: next, redirect: 'recite' },
-                { preserveScroll: true },
-            );
-        }
-    }
 
     function rate(rating: Rating) {
         if (!state.card) {
@@ -329,11 +314,15 @@ export default function Recite() {
 
     function undo() {
         setProcessing(true);
-        router.post(ReciteController.undo.url(), {}, {
-            preserveScroll: true,
-            onError: () => toast.error('撤销失败，请重试'),
-            onFinish: () => setProcessing(false),
-        });
+        router.post(
+            ReciteController.undo.url(),
+            {},
+            {
+                preserveScroll: true,
+                onError: () => toast.error('撤销失败，请重试'),
+                onFinish: () => setProcessing(false),
+            },
+        );
     }
 
     const percent =
@@ -350,28 +339,7 @@ export default function Recite() {
             <div className="mx-auto flex max-w-2xl flex-col gap-6">
                 {/* 源切换 */}
                 <div className="flex justify-center">
-                    <div className="flex gap-2 rounded-lg bg-muted p-1">
-                        {(
-                            [
-                                { key: 'selected', label: '自选卡' },
-                                { key: 'mistake', label: '错题本' },
-                            ] as const
-                        ).map(({ key, label }) => (
-                            <button
-                                key={key}
-                                type="button"
-                                onClick={() => switchSource(key)}
-                                className={cn(
-                                    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                                    sourceTab === key
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground',
-                                )}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
+                    <SourceTabs source={state.source} redirect="recite" />
                 </div>
 
                 {state.phase === 'empty' && (
@@ -418,7 +386,9 @@ export default function Recite() {
                             <div className="flex gap-3">
                                 <Button
                                     onClick={() =>
-                                        router.get(recite({ query: { start: 1 } }))
+                                        router.get(
+                                            recite({ query: { start: 1 } }),
+                                        )
                                     }
                                 >
                                     再背一轮
