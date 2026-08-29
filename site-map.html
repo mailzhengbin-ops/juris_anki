@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>juris_anki 网站功能地图</title>
+<style>
+:root {
+  --ink:#1a2233; --ink-soft:#4a5568; --paper:#fdfdf8; --panel:#fff;
+  --line:#e2e0d5; --accent:#1f5eff; --accent-soft:#eaf0ff;
+  --amber:#b45309; --amber-soft:#fff7e6; --green:#1a7f4d; --green-soft:#e8f6ee;
+  --red:#c0392b; --red-soft:#fdeeea;
+  --mono:"Cascadia Code","JetBrains Mono",Consolas,"Courier New",monospace;
+  --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --serif:Georgia,"Times New Roman","Songti SC",SimSun,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--sans);font-size:15px;line-height:1.7;color:var(--ink);background:var(--paper)}
+header.doc-head{background:linear-gradient(135deg,#16233f,#1f3560);color:#f4f6fb;padding:2.6rem 2rem 2.2rem;border-bottom:4px solid var(--accent)}
+.doc-head .kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#9db4e8;margin:0 0 .4rem}
+.doc-head h1{font-family:var(--serif);font-size:2rem;margin:0 0 .5rem;line-height:1.3}
+.doc-head .sub{color:#c6d2ea;margin:0;max-width:56rem}
+.doc-head .meta{margin-top:.9rem;font-size:12.5px;color:#93a7d4}
+.badges{display:flex;flex-wrap:wrap;gap:.45rem;margin:1rem 0 0}
+.badge{font-size:12px;font-family:var(--mono);padding:.2rem .6rem;border-radius:4px;background:var(--accent-soft);color:var(--accent);border:1px solid #cddcff}
+.doc-body{max-width:78rem;margin:0 auto;padding:2rem 1.5rem 4rem}
+section.block{margin:0 0 2.8rem}
+section.block>h2{font-family:var(--serif);font-size:1.35rem;border-bottom:2px solid var(--ink);padding-bottom:.35rem;margin:0 0 1.1rem}
+section.block>h2 .no{color:var(--accent);margin-right:.4rem}
+section.block>p.lead{color:var(--ink-soft);margin:0 0 1rem}
+.page-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:1.1rem 1.3rem 1.3rem;margin:0 0 1.2rem}
+.page-card h3{margin:0 0 .2rem;font-size:1.05rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.page-card .url{font-family:var(--mono);font-size:12.5px;color:var(--accent);background:var(--accent-soft);padding:.1rem .5rem;border-radius:4px;font-weight:normal}
+.page-card .purpose{color:var(--ink-soft);font-size:13.5px;margin:.15rem 0 .7rem}
+.flow{font-family:var(--mono);font-size:12.5px;background:#f6f6f1;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:4px;padding:.55rem .8rem;margin:.4rem 0 .8rem;overflow-x:auto;white-space:nowrap;color:#33405a}
+.flow .f{color:var(--green);font-weight:600}.flow .b{color:var(--red);font-weight:600}.flow .e{color:var(--amber);font-weight:600}.flow .s{color:var(--ink-soft)}
+.files{font-size:12.5px;margin:.5rem 0 0}
+.files dt{display:inline-block;min-width:5.2em;font-weight:600;color:var(--ink-soft)}
+.files dd{margin:0 0 .18rem;font-family:var(--mono);font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:.6rem 0 1rem;background:var(--panel)}
+th,td{border:1px solid var(--line);padding:.42rem .7rem;text-align:left;vertical-align:top}
+th{background:#f1f2ec;font-weight:600;white-space:nowrap}
+tr:nth-child(even) td{background:#fafaf6}
+code{font-family:var(--mono);font-size:.92em;background:#f0f0ea;padding:.08em .35em;border-radius:3px}
+.flow code{background:none;padding:0}
+.decision{border-left:3px solid var(--amber);background:var(--amber-soft);padding:.7rem 1rem;margin:0 0 .9rem;border-radius:0 6px 6px 0}
+.decision h4{margin:0 0 .3rem;font-size:.98rem}
+.decision p{margin:0;font-size:13.5px;color:#5b3a0a}
+.decision code{background:#f5e6c8}
+.callout{border-radius:6px;padding:.7rem 1rem;margin:.9rem 0;font-size:13.5px}
+.callout.tip{background:var(--green-soft);border-left:3px solid var(--green);color:#14532d}
+.callout.warn{background:var(--red-soft);border-left:3px solid var(--red);color:#7f1d1d}
+.callout.info{background:var(--accent-soft);border-left:3px solid var(--accent);color:#1e3a8a}
+.exercise{background:var(--panel);border:1px dashed var(--accent);border-radius:8px;padding:1rem 1.2rem;margin:.9rem 0}
+.exercise h4{margin:0 0 .5rem;color:var(--accent);font-size:.98rem}
+.exercise details{margin:.5rem 0;font-size:13.5px}
+.exercise summary{cursor:pointer;font-weight:600}
+.exercise .ans{margin-top:.4rem;font-size:13px;color:var(--ink-soft)}
+.doc-foot{max-width:78rem;margin:0 auto;padding:1.2rem 1.5rem 3rem;color:var(--ink-soft);font-size:12.5px;border-top:1px solid var(--line)}
+a{color:var(--accent)}
+@media print{body{font-size:12px}header.doc-head{padding:1.2rem}.page-card{break-inside:avoid}.flow{white-space:normal}}
+</style>
+</head>
+<body>
+
+<header class="doc-head">
+  <p class="kicker">网站功能地图 · 维护者速查</p>
+  <h1>juris_anki 网站功能地图</h1>
+  <p class="sub">每个页面背后是怎么实现的：URL → 控制器 → 服务 → 数据 → 页面组件。附阅读套路、一次完整请求旅程和三个定位练习。</p>
+  <div class="meta">2026-08-29 · 依据仓库当前代码整理 · 改代码前先查 §8 定位表</div>
+  <div class="badges">
+    <span class="badge">Laravel 12</span><span class="badge">PHP 8.5</span><span class="badge">Inertia v3</span><span class="badge">React 19</span>
+    <span class="badge">TypeScript</span><span class="badge">Tailwind v4</span><span class="badge">shadcn/ui</span><span class="badge">Fortify + Passkeys</span><span class="badge">SQLite</span>
+  </div>
+</header>
+
+<div class="doc-body">
+
+<!-- ============ 0 阅读套路 ============ -->
+<section class="block">
+  <h2><span class="no">0</span>怎么读这张地图：三层套路</h2>
+  <p class="lead">任何功能，问三个问题就能定位到代码：</p>
+  <table>
+    <tr><th style="width:24%">问题</th><th>去哪查</th><th>例子（打分按钮）</th></tr>
+    <tr><td><strong>① URL 是谁响应的？</strong></td><td>地图卡片里的「数据流」行</td><td><code>POST /recite/rate</code> → <code>ReciteController@rate</code></td></tr>
+    <tr><td><strong>② 逻辑在哪个服务？</strong></td><td>控制器很薄，业务在 Service</td><td><code>RecitationService::rate()</code></td></tr>
+    <tr><td><strong>③ 数据落哪张表？</strong></td><td>§5 数据模型</td><td><code>evaluations</code> 表追加一行</td></tr>
+  </table>
+  <div class="callout tip">全站规律：<strong>页面 tsx 只管"长什么样"，Service 管"业务怎么算"，控制器只是中间传话的。</strong> 改 UI 找 pages/，改逻辑找 Services/。</div>
+</section>
+
+<!-- ============ 1 全局架构 ============ -->
+<section class="block">
+  <h2><span class="no">1</span>全局架构：一次请求的生命周期</h2>
+  <p class="lead">这是 <strong>Inertia 单页应用</strong>：前端不自己调 API，而是用 JavaScript 发 Inertia 请求，后端渲染页面时把数据以 props 一起返回，React 组件直接消费。全站唯一例外是 markdown 导入（POST multipart 文件上传）。</p>
+  <table>
+    <tr><th style="width:13%">层</th><th>干什么</th><th>位置</th></tr>
+    <tr><td><strong>路由</strong></td><td>URL 映射到控制器。核心学习流在 <code>web.php</code>，管理端在 <code>admin.php</code>（套 <code>EnsureAdmin</code> 中间件），设置与认证在 <code>settings.php</code></td><td><code>routes/*.php</code></td></tr>
+    <tr><td><strong>控制器</strong></td><td>薄层：校验输入、调用服务、返回 Inertia 页面或重定向</td><td><code>app/Http/Controllers/</code></td></tr>
+    <tr><td><strong>服务层</strong></td><td>真正的业务逻辑：背诵、范围、统计、导入、错题本各一个深模块</td><td><code>app/Services/</code></td></tr>
+    <tr><td><strong>模型 / 表</strong></td><td>7 张表承载全部数据（§5），范围勾选与背诵进度各有巧思</td><td><code>app/Models/</code></td></tr>
+    <tr><td><strong>前端页面</strong></td><td>Inertia 渲染到 <code>resources/js/pages/</code>，消费 props，经 Wayfinder 类型化函数提交</td><td><code>resources/js/pages/</code></td></tr>
+  </table>
+  <div class="flow"><span class="f">浏览器 URL</span> → <span class="s">Inertia 请求</span> → <span class="e">routes/*.php</span> → <span class="b">Controller</span> → <span class="s">Service</span> → <span class="s">Model / DB</span> → <span class="f">props JSON</span> → <span class="f">pages/*.tsx</span></div>
+  <div class="callout tip">改功能时的第一问永远是：<strong>这个动作写不写库？</strong> 只读展示 → 找 Controller 的 show/index 方法；写库 → 找 POST 路由和背后的 Service。</div>
+</section>
+
+<!-- ============ 2 核心学习流 ============ -->
+<section class="block">
+  <h2><span class="no">2</span>核心学习流（每天用的三页）</h2>
+  <p class="lead">产品循环：<strong>选卡</strong>（定范围）→ <strong>背诵</strong>（翻卡打分）→ <strong>统计</strong>（看结果）。三页共用一套概念：来源（SourceType：自选卡/错题本）、范围（Scope）、评价（Rating：认识/模糊/忘记）。</p>
+
+  <div class="page-card">
+    <h3>选卡页 <span class="url">GET /select</span></h3>
+    <p class="purpose">两大区块：(a) <strong>当前在背</strong> — 自选卡/错题本切换（SourceTabs）+ 当前卡组摘要 + "调整范围"对话框（卡组树三态勾选，本地草稿，确认才提交）；(b) <strong>卡组仓库</strong> — 系统/用户卡组网格 + Markdown 导入 + 卡组详情（设为自选卡 / 删除）。</p>
+    <div class="flow"><span class="f">GET /select</span> → <span class="e">SelectController@index</span> → <span class="s">ScopeService::tree()×2</span> → props: <span class="b">warehouse / selectedDeck / activeSource / selectedScope / mistakeScope</span> → <span class="f">pages/select/index.tsx</span></div>
+    <dl class="files">
+      <dt>读</dt><dd>app/Http/Controllers/SelectController.php · app/Services/ScopeService.php · resources/js/pages/select/index.tsx</dd>
+      <dt>写</dt><dd>app/Http/Controllers/ScopeController.php（toggle/apply）· app/Http/Controllers/DeckController.php（import/destroy）</dd>
+    </dl>
+    <table>
+      <tr><th>动作</th><th>请求</th><th>处理</th><th>效果</th></tr>
+      <tr><td>设为自选卡</td><td>POST /select/deck</td><td>SelectController@setSelectedDeck（校验归属，非系统/本人卡 403）</td><td>写 users.selected_deck_id</td></tr>
+      <tr><td>切换来源</td><td>POST /select/source</td><td>SelectController@setActiveSource（校验枚举）</td><td>写 users.active_source，可带 redirect 回背诵页</td></tr>
+      <tr><td>勾选卡片</td><td>POST /scope/toggle</td><td>ScopeService::toggle()</td><td>勾上 = 删排除记录；取消 = 插一条（反向存储）</td></tr>
+      <tr><td>确认范围</td><td>POST /scope/apply</td><td>ScopeService::apply()（整组替换排除集）</td><td>写 scope_exclusions 表</td></tr>
+      <tr><td>导入卡组</td><td>POST /decks/import</td><td>DeckImportService → MarkdownDeckParser</td><td>事务创建 Deck/Section/Card</td></tr>
+      <tr><td>删除卡组</td><td>DELETE /decks/{deck}</td><td>DeckController@destroy（仅本人卡组）</td><td>级联删除，评价记录保留</td></tr>
+    </table>
+  </div>
+
+  <div class="page-card">
+    <h3>背诵页 <span class="url">GET /recite</span></h3>
+    <p class="purpose">按 <code>state.phase</code> 四态渲染：<strong>empty</strong>（引导去选卡）→ <strong>fresh</strong>（第一张）→ <strong>active</strong>（下一张）→ <strong>completed</strong>（本轮统计 + "再背一轮"）。卡片点击/空格翻面，翻面后三色打分（认识/模糊/忘记）+ 撤销；快捷键：Space 翻面、1/2/3 打分、U 撤销。</p>
+    <div class="flow"><span class="f">GET /recite</span> → <span class="e">ReciteController@show</span> → <span class="s">RecitationService::state()</span>（纯投影，不写库）→ props: <span class="b">state{source, phase, progress, card, task}</span> → <span class="f">pages/recite/index.tsx</span></div>
+    <dl class="files">
+      <dt>读</dt><dd>app/Http/Controllers/ReciteController.php · app/Services/RecitationService.php · resources/js/pages/recite/index.tsx</dd>
+      <dt>契约</dt><dd>resources/js/lib/recitation.ts —— 后端状态形状的 TS 镜像，三色标签/图标唯一来源</dd>
+    </dl>
+    <table>
+      <tr><th>动作</th><th>请求</th><th>处理</th><th>效果</th></tr>
+      <tr><td>打分</td><td>POST /recite/rate</td><td>RecitationService::rate()（范围校验 → 无开放任务则建 Task → 追加 Evaluation）</td><td>直接渲染新 state（无重定向）</td></tr>
+      <tr><td>撤销</td><td>POST /recite/undo</td><td>RecitationService::undo()（删最后一条评价，任务重开）</td><td>直接渲染新 state</td></tr>
+      <tr><td>再背一轮</td><td>GET /recite?start=1</td><td>show 强制回到 fresh</td><td>渲染新 state</td></tr>
+    </table>
+  </div>
+
+  <div class="page-card">
+    <h3>统计页 <span class="url">GET /stats?tz=Asia/Shanghai</span></h3>
+    <p class="purpose">近 7 天每日三色评价数（同卡同日只计最后一次）+ 本周合计。柱状图是纯 div 手绘堆叠，没有图表库。浏览器时区与服务端不一致时自动 <code>router.reload</code> 换时区重算。</p>
+    <div class="flow"><span class="f">GET /stats</span> → <span class="e">StatsController@show</span>（解析 tz，非法回退 UTC）→ <span class="s">StatsService::daily()</span> → props: <span class="b">stats{days[], totals} / timezone</span> → <span class="f">pages/stats/index.tsx</span></div>
+    <dl class="files"><dt>文件</dt><dd>app/Http/Controllers/StatsController.php · app/Services/StatsService.php · resources/js/pages/stats/index.tsx</dd></dl>
+  </div>
+</section>
+
+<!-- ============ 3 公开与认证 ============ -->
+<section class="block">
+  <h2><span class="no">3</span>公开与认证区</h2>
+  <div class="page-card">
+    <h3>首页 <span class="url">GET /</span></h3>
+    <p class="purpose">纯静态落地页：Logo + "自选范围、单遍过卡、错题攻坚" + 注册/登录按钮。无 props、无数据请求。</p>
+    <dl class="files"><dt>文件</dt><dd>resources/js/pages/welcome.tsx · routes/web.php:10</dd></dl>
+  </div>
+  <div class="page-card">
+    <h3>登录 / 注册 / 两步验证 / Passkey <span class="url">/login /register /two-factor-challenge</span></h3>
+    <p class="purpose">全部由 <strong>Fortify + Laravel Passkeys</strong> 自动注册实现（仓库不写这些控制器）。含 WebAuthn 公钥端点（<code>/.well-known/passkey-endpoints</code>）、TOTP 二步验证、恢复码、密码确认。</p>
+    <dl class="files"><dt>文件</dt><dd>resources/js/pages/auth/*.tsx · app/Providers/FortifyServiceProvider.php · routes/settings.php</dd></dl>
+  </div>
+</section>
+
+<!-- ============ 4 设置区 ============ -->
+<section class="block">
+  <h2><span class="no">4</span>设置区 /settings/**</h2>
+  <div class="page-card">
+    <h3>个人资料 <span class="url">/settings/profile</span></h3>
+    <p class="purpose">改昵称/邮箱（Inertia Form）+ 注销账号（DeleteUser，危险区）。</p>
+    <dl class="files"><dt>文件</dt><dd>pages/settings/profile.tsx · Settings/ProfileController.php</dd></dl>
+  </div>
+  <div class="page-card">
+    <h3>外观 <span class="url">/settings/appearance</span></h3>
+    <p class="purpose">明暗主题切换，本地偏好，不发请求。</p>
+    <dl class="files"><dt>文件</dt><dd>pages/settings/appearance.tsx · components/appearance-tabs.tsx</dd></dl>
+  </div>
+  <div class="page-card">
+    <h3>安全 <span class="url">/settings/security</span></h3>
+    <p class="purpose">三块：修改密码、两步验证开关（ManageTwoFactor）、Passkey 管理（ManagePasskeys）。</p>
+    <dl class="files"><dt>文件</dt><dd>pages/settings/security.tsx · Settings/SecurityController.php · components/manage-two-factor.tsx · components/manage-passkeys.tsx</dd></dl>
+  </div>
+</section>
+
+<!-- ============ 5 管理区 ============ -->
+<section class="block">
+  <h2><span class="no">5</span>管理区 /admin/**（EnsureAdmin 中间件，管理员专用）</h2>
+  <p class="lead">管理端改系统卡组（user_id = null 的 Deck）与用户。系统卡组受 Policy 守卫，编辑卡片按 ID 保持身份、不影响用户已产生的评价。</p>
+  <div class="page-card">
+    <h3>仪表盘 <span class="url">GET /admin</span></h3>
+    <p class="purpose">只读：用户数 + 系统卡组数 + 环境信息（PHP / 数据库 / Laravel 版本）。</p>
+    <dl class="files"><dt>文件</dt><dd>pages/admin/dashboard.tsx · Admin/AdminController.php</dd></dl>
+  </div>
+  <div class="page-card">
+    <h3>系统卡组管理 <span class="url">/admin/decks · /admin/decks/{deck}</span></h3>
+    <p class="purpose">列表 + Markdown 导入（创建系统卡组）→ 详情页全量编辑：卡组改名/删除、子卡组改名/删除、卡片问答编辑/删除。</p>
+    <div class="flow"><span class="f">GET /admin/decks</span> → <span class="e">AdminDeckController@index</span> → <span class="b">decks[]</span> → <span class="f">pages/admin/decks/index.tsx</span> &nbsp;|&nbsp; <span class="f">GET /admin/decks/{deck}</span> → <span class="e">@show</span> → <span class="b">deck{sections[]{cards[]}}</span> → <span class="f">pages/admin/decks/show.tsx</span></div>
+    <dl class="files"><dt>文件</dt><dd>pages/admin/decks/*.tsx · Admin/AdminDeckController.php · app/Policies/DeckPolicy.php</dd></dl>
+  </div>
+  <div class="page-card">
+    <h3>用户管理 <span class="url">/admin/users · /admin/users/{user}</span></h3>
+    <p class="purpose">列表（按昵称/邮箱搜索）+ 详情（卡组数、评价数）+ 删除用户。保护规则：不能删自己、不能删唯一管理员。</p>
+    <dl class="files"><dt>文件</dt><dd>pages/admin/users/*.tsx · Admin/AdminUserController.php</dd></dl>
+  </div>
+</section>
+
+<!-- ============ 6 数据模型 ============ -->
+<section class="block">
+  <h2><span class="no">6</span>数据模型（7 张表，SQLite）</h2>
+  <table>
+    <tr><th>表</th><th>关键字段</th><th>一句话职责</th></tr>
+    <tr><td><code>users</code></td><td><code>selected_deck_id</code> · <code>active_source</code> · <code>is_admin</code></td><td>用户 + 两个"当前状态"（自选卡、来源）</td></tr>
+    <tr><td><code>decks</code></td><td><code>user_id</code>（null = 系统卡组）· <code>name</code></td><td>卡组，同名唯一（按归属域）</td></tr>
+    <tr><td><code>sections</code></td><td><code>deck_id</code> · <code>name</code> · <code>position</code></td><td>子卡组，顺序由 position 决定</td></tr>
+    <tr><td><code>cards</code></td><td><code>section_id</code> · <code>question</code> · <code>answer</code> · <code>position</code></td><td>一问一答的背诵卡</td></tr>
+    <tr><td><code>tasks</code></td><td><code>user_id</code> · <code>source_type</code> · <code>source_deck_id</code> · <code>completed_at</code></td><td>一轮背诵会话（<strong>无卡片快照</strong>）</td></tr>
+    <tr><td><code>evaluations</code></td><td><code>card_id</code> · <code>task_id</code> · <code>rating</code> · <code>created_at</code></td><td>不可变追加日志（无 updated_at）</td></tr>
+    <tr><td><code>scope_exclusions</code></td><td><code>user_id</code> · <code>source</code> · <code>card_id</code></td><td><strong>反向存储</strong>：只记"取消勾选"的卡片</td></tr>
+  </table>
+  <div class="callout info">注意两张"不存进度"的表：Task 不存卡片快照、ScopeExclusion 只存排除集 —— 背诵进度和范围都是实时推导出来的，见 §7。</div>
+</section>
+
+<!-- ============ 7 三大设计决策 ============ -->
+<section class="block">
+  <h2><span class="no">7</span>三大核心设计决策（改代码前必读）</h2>
+  <div class="decision">
+    <h4>① 背诵进度 = 实时推导，无冗余存储</h4>
+    <p>进度不存"背到第几张"。每次 <code>GET /recite</code>，<code>RecitationService::state()</code> 用"当前范围卡片 − 已评价卡片"实时算出下一张。中途改范围、撤销、再背一轮都天然正确。阶段判定（empty/fresh/active/completed）也在这里推导，前端只消费 <code>phase</code> 字段。</p>
+  </div>
+  <div class="decision">
+    <h4>② 范围勾选反向存储（排除集）</h4>
+    <p>默认全选 = 数据库零行。勾上卡片 = 删掉它的排除记录，取消 = 插入一条。范围 = 源内全部卡片（卡组树顺序）− 排除集。写库唯一入口是 <code>ScopeService::toggle() / apply()</code>。</p>
+  </div>
+  <div class="decision">
+    <h4>③ 错题本在册 = 单一规则</h4>
+    <p>由唯一规则决定：<strong>最新一次评价是模糊/忘记 = 在册，认识 = 出册</strong>（<code>Rating::enrollsInMistakeBook()</code>）。规则集中在 <code>MistakeBookService.php</code>，被范围服务和背诵服务共用。</p>
+  </div>
+</section>
+
+<!-- ============ 8 定位表 ============ -->
+<section class="block">
+  <h2><span class="no">8</span>"想改 X，改哪里" 速查表</h2>
+  <table>
+    <tr><th style="width:38%">我想改…</th><th>动这些文件</th></tr>
+    <tr><td>选卡页的界面布局 / 卡片展示</td><td>resources/js/pages/select/index.tsx</td></tr>
+    <tr><td>范围勾选逻辑 / 卡组树数据结构</td><td>app/Services/ScopeService.php · app/Http/Controllers/ScopeController.php</td></tr>
+    <tr><td>背诵阶段判定 / 出卡顺序 / 再背一轮</td><td>app/Services/RecitationService.php · app/Enums/RecitationPhase.php</td></tr>
+    <tr><td>打分按钮的标签、颜色、图标</td><td>resources/js/lib/recitation.ts（RATING_INFO）· app/Enums/Rating.php</td></tr>
+    <tr><td>错题本"在册"规则</td><td>app/Services/MistakeBookService.php</td></tr>
+    <tr><td>统计周期（7 天→30 天）或口径</td><td>app/Services/StatsService.php · pages/stats/index.tsx</td></tr>
+    <tr><td>markdown 导入格式解析</td><td>app/Services/MarkdownDeckParser.php</td></tr>
+    <tr><td>提交按钮的确认弹窗 / 错误提示</td><td>resources/js/hooks/use-action.ts（全站统一入口）</td></tr>
+    <tr><td>新增一个页面</td><td>routes/web.php + 新 Controller + resources/js/pages/新页面.tsx</td></tr>
+    <tr><td>导航 / 布局 / 主题</td><td>components/app-shell.tsx · app-sidebar.tsx · app-header.tsx</td></tr>
+  </table>
+</section>
+
+<!-- ============ 9 一次请求旅程 ============ -->
+<section class="block">
+  <h2><span class="no">9</span>一次完整的旅程：用户按了「认识」</h2>
+  <p class="lead">打分不经过页面跳转，数据随响应直接回到同一个页面——这是 Inertia 应用和传统网站最不一样的地方。</p>
+  <div class="flow"><span class="f">① 用户按 1（认识）</span> → <span class="e">② useAction 提交 POST /recite/rate</span> → <span class="e">③ 路由匹配 → ReciteController@rate</span> → <span class="b">④ 校验 rating</span> → <span class="s">⑤ RecitationService::rate() 写库</span> → <span class="s">⑥ 重新算出 state()</span> → <span class="f">⑦ 新 state 随响应返回 → 页面直接更新</span></div>
+  <table>
+    <tr><th style="width:12%">步骤</th><th>发生什么</th><th>在哪看代码</th></tr>
+    <tr><td>① 用户按 1</td><td>RatingBar 捕获快捷键/点击，调 rate action</td><td>resources/js/pages/recite/index.tsx</td></tr>
+    <tr><td>② 提交</td><td>useAction 统一包装：请求、loading、错误 toast</td><td>resources/js/hooks/use-action.ts</td></tr>
+    <tr><td>③ 路由</td><td>POST /recite/rate 匹配到控制器</td><td>routes/web.php → ReciteController@rate</td></tr>
+    <tr><td>④ 校验</td><td>card_id 必须存在，rating ∈ {known, fuzzy, forgotten}</td><td>app/Enums/Rating.php</td></tr>
+    <tr><td>⑤ 写库</td><td>范围校验 → 无开放任务则建 Task → 追加一条 Evaluation</td><td>app/Services/RecitationService.php</td></tr>
+    <tr><td>⑥ 重新推导</td><td>用"范围 − 已评价"算出下一张卡和新进度</td><td>RecitationService::state()（纯投影，不写库）</td></tr>
+    <tr><td>⑦ 页面更新</td><td>新 state 直接渲染：进度条前进、换下一张卡</td><td>recite/index.tsx（React 收到新 props）</td></tr>
+  </table>
+  <div class="callout warn">注意 ⑤ 和 ⑥ 的区别：<code>rate()</code> 写库，<code>state()</code> 只读。这也是"撤销"实现简单的原因——删掉最后一条 Evaluation 再重新推导一遍即可。</div>
+</section>
+
+<!-- ============ 10 练习 ============ -->
+<section class="block">
+  <h2><span class="no">10</span>动手练习：三个定位题</h2>
+  <p class="lead">先自己想答案，再点开核对。</p>
+  <div class="exercise">
+    <h4>练习 1 · 找文件（简单）</h4>
+    <p>背诵页有个"再背一轮"按钮。它在前端哪个文件、走后端哪个控制器方法？</p>
+    <details><summary>查看答案</summary>
+      <div class="ans">前端 <code>pages/recite/index.tsx</code>（router.get(recite?start=1)）；后端 <code>ReciteController@show</code> 收到 <code>start=1</code> 时强制回 fresh。</div>
+    </details>
+  </div>
+  <div class="exercise">
+    <h4>练习 2 · 找服务（中等）</h4>
+    <p>"卡片最新评价是模糊/忘记 = 进错题本"这条规则在哪个文件？它被谁共用？</p>
+    <details><summary>查看答案</summary>
+      <div class="ans"><code>app/Services/MistakeBookService.php</code>（规则单点：<code>Rating::enrollsInMistakeBook()</code>），被 ScopeService（错题本源）和 RecitationService（卡片在册标记）共用。见 §7 决策 ③。</div>
+    </details>
+  </div>
+  <div class="exercise">
+    <h4>练习 3 · 读链路（挑战）</h4>
+    <p>用户在选卡页"调整范围"对话框里取消勾选了一张卡并点确认。写下从点击到数据落库的完整路径（提示：4 步，涉及 2 个文件、1 个服务、1 张表）。</p>
+    <details><summary>查看答案</summary>
+      <div class="ans">① <code>select/index.tsx</code> 本地草稿移除该卡 id → 确认时组装 card_ids[]；② POST /scope/apply → ScopeController@apply；③ ScopeService::apply() 整组替换排除集；④ 该卡（及所有未勾选卡）插入 <code>scope_exclusions</code> 表 —— 注意是<strong>反向存储</strong>：落库的是"不背的卡"。</div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 11 词汇表 ============ -->
+<section class="block">
+  <h2><span class="no">11</span>词汇表（全站通用术语）</h2>
+  <table>
+    <tr><th style="width:16%">术语</th><th>含义</th></tr>
+    <tr><td><strong>Deck / Section / Card</strong></td><td>卡组 / 子卡组 / 卡片。顺序由 position 字段决定，不是 id</td></tr>
+    <tr><td><strong>Source</strong></td><td>背诵来源（SourceType）：selected（自选卡）/ mistake（错题本）</td></tr>
+    <tr><td><strong>Scope</strong></td><td>背诵范围 = 源内全部卡片 − 排除集（scope_exclusions）</td></tr>
+    <tr><td><strong>Task</strong></td><td>一轮背诵会话（从开始到背完当前范围）</td></tr>
+    <tr><td><strong>Evaluation</strong></td><td>一次打分记录（Rating × 卡片 × 所属 Task），不可变追加</td></tr>
+    <tr><td><strong>Rating</strong></td><td>三档评价：known（认识）/ fuzzy（模糊）/ forgotten（忘记）</td></tr>
+    <tr><td><strong>Phase</strong></td><td>背诵页四态：empty / fresh / active / completed（RecitationPhase）</td></tr>
+    <tr><td><strong>enrolled</strong></td><td>卡片是否"在册"错题本（最新评价 fuzzy/forgotten）</td></tr>
+    <tr><td><strong>warehouse</strong></td><td>选卡页的"卡组仓库"数据（系统卡组 + 我的卡组）</td></tr>
+    <tr><td><strong>系统卡组</strong></td><td>user_id = null 的卡组，所有用户可见、不可删改（管理端维护）</td></tr>
+  </table>
+</section>
+
+</div>
+
+<footer class="doc-foot">
+  依据仓库当前代码整理 · 有疑问直接问你的教学 agent：挑任意一张卡片让它带你读源码，或描述想改的功能让它告诉你动哪些文件。
+</footer>
+
+</body>
+</html>
