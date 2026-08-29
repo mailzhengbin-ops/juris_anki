@@ -1,9 +1,8 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import SelectController from '@/actions/App/Http/Controllers/SelectController';
+import type { SourceTab } from '@/lib/recitation';
 import { cn } from '@/lib/utils';
-
-export type SourceTab = 'selected' | 'mistake';
 
 const SOURCE_TABS: Array<{ key: SourceTab; label: string }> = [
     { key: 'selected', label: '自选卡' },

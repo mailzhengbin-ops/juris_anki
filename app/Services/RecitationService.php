@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Rating;
+use App\Enums\RecitationPhase;
 use App\Enums\SourceType;
 use App\Models\Card;
 use App\Models\Evaluation;
@@ -34,13 +35,13 @@ class RecitationService
         $deckId = $source === SourceType::Mistake ? null : $user->selected_deck_id;
 
         if ($source === SourceType::Selected && $deckId === null) {
-            return $this->baseState($source, 'empty');
+            return $this->baseState($source, RecitationPhase::Empty);
         }
 
         $scopeIds = $this->scope->cardIds($user, $source);
 
         if ($scopeIds->isEmpty()) {
-            return $this->baseState($source, 'empty');
+            return $this->baseState($source, RecitationPhase::Empty);
         }
 
         $task = $this->currentTask($user, $source, $deckId);
@@ -71,7 +72,7 @@ class RecitationService
                 : $this->completedState($source, $task);
         }
 
-        $state = $this->baseState($source, 'active');
+        $state = $this->baseState($source, RecitationPhase::Active);
         $state['progress'] = ['evaluated' => $evaluatedInScope, 'total' => $scopeIds->count()];
         $state['card'] = $this->cardPayload(
             $user,
@@ -194,11 +195,11 @@ class RecitationService
     /**
      * @return array{source: string, phase: string, progress: array{evaluated: int, total: int}, card: null, task: null}
      */
-    private function baseState(SourceType $source, string $phase): array
+    private function baseState(SourceType $source, RecitationPhase $phase): array
     {
         return [
             'source' => $source->value,
-            'phase' => $phase,
+            'phase' => $phase->value,
             'progress' => ['evaluated' => 0, 'total' => 0],
             'card' => null,
             'task' => null,
@@ -212,7 +213,7 @@ class RecitationService
     private function freshState(User $user, SourceType $source, Collection $scopeIds): array
     {
         $firstCardId = $scopeIds->first();
-        $state = $this->baseState($source, 'fresh');
+        $state = $this->baseState($source, RecitationPhase::Fresh);
         $state['progress'] = ['evaluated' => 0, 'total' => $scopeIds->count()];
         $state['card'] = $this->cardPayload(
             $user,
@@ -232,7 +233,7 @@ class RecitationService
             ->map->count()
             ->all();
 
-        $state = $this->baseState($source, 'completed');
+        $state = $this->baseState($source, RecitationPhase::Completed);
         $state['task'] = [
             'stats' => [
                 'known' => $stats['known'] ?? 0,

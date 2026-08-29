@@ -1,5 +1,4 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, MinusCircle, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ReciteController from '@/actions/App/Http/Controllers/ReciteController';
 import MarkdownContent from '@/components/markdown-content';
@@ -7,87 +6,19 @@ import SourceTabs from '@/components/source-tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAction } from '@/hooks/use-action';
+import {
+    formatRelativeTime,
+    progressPercent,
+    RATINGS,
+    RATING_INFO,
+} from '@/lib/recitation';
+import type { CardPayload, Rating, RecitationState } from '@/lib/recitation';
 import { cn } from '@/lib/utils';
 import { recite, select } from '@/routes';
-
-type Rating = 'known' | 'fuzzy' | 'forgotten';
-
-type RatingInfo = {
-    label: string;
-    className: string;
-    Icon: typeof CheckCircle2;
-};
-
-const RATING_INFO: Record<Rating, RatingInfo> = {
-    known: {
-        label: '认识',
-        className: 'bg-green-500 hover:bg-green-600',
-        Icon: CheckCircle2,
-    },
-    fuzzy: {
-        label: '模糊',
-        className: 'bg-amber-500 hover:bg-amber-600',
-        Icon: MinusCircle,
-    },
-    forgotten: {
-        label: '忘记',
-        className: 'bg-red-500 hover:bg-red-600',
-        Icon: XCircle,
-    },
-};
-
-type CardPayload = {
-    id: number;
-    question: string;
-    answer: string;
-    path: string;
-    enrolled: 'fuzzy' | 'forgotten' | null;
-    history: {
-        total: number;
-        known: number;
-        fuzzy: number;
-        forgotten: number;
-        last_rating: Rating | null;
-        last_at: string | null;
-    };
-};
-
-type RecitationState = {
-    source: 'selected' | 'mistake';
-    phase: 'empty' | 'fresh' | 'active' | 'completed';
-    progress: { evaluated: number; total: number };
-    card: CardPayload | null;
-    task: {
-        stats: { known: number; fuzzy: number; forgotten: number };
-    } | null;
-};
 
 type PageProps = {
     state: RecitationState;
 };
-
-function formatRelativeTime(iso: string): string {
-    const diffMs = Date.now() - new Date(iso).getTime();
-    const minutes = Math.floor(diffMs / 60000);
-
-    if (minutes < 1) {
-        return '刚刚';
-    }
-
-    if (minutes < 60) {
-        return `${minutes} 分钟前`;
-    }
-
-    const hours = Math.floor(minutes / 60);
-
-    if (hours < 24) {
-        return `${hours} 小时前`;
-    }
-
-    const days = Math.floor(hours / 24);
-
-    return days === 1 ? '昨天' : `${days} 天前`;
-}
 
 function CardHeader({ card }: { card: CardPayload }) {
     return (
@@ -197,7 +128,7 @@ function RatingBar({
         <div className="fixed inset-x-0 bottom-20 z-40 mx-auto w-full max-w-2xl px-4 md:bottom-6">
             <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 shadow-lg">
                 <div className="grid grid-cols-3 gap-2">
-                    {(Object.keys(RATING_INFO) as Rating[]).map((rating) => {
+                    {RATINGS.map((rating) => {
                         const { label, className, Icon } = RATING_INFO[rating];
 
                         return (
@@ -311,12 +242,7 @@ export default function Recite() {
         submit(ReciteController.undo(), {}, { error: '撤销失败，请重试' });
     }
 
-    const percent =
-        state.progress.total > 0
-            ? Math.round(
-                  (state.progress.evaluated / state.progress.total) * 100,
-              )
-            : 0;
+    const percent = progressPercent(state.progress);
 
     return (
         <>

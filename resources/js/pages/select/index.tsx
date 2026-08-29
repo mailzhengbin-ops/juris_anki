@@ -5,11 +5,11 @@ import DeckController from '@/actions/App/Http/Controllers/DeckController';
 import ScopeController from '@/actions/App/Http/Controllers/ScopeController';
 import SelectController from '@/actions/App/Http/Controllers/SelectController';
 import SourceTabs from '@/components/source-tabs';
-import type { SourceTab } from '@/components/source-tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAction } from '@/hooks/use-action';
+import type { SourceTab } from '@/lib/recitation';
 import { cn } from '@/lib/utils';
 
 type DeckSummary = {
